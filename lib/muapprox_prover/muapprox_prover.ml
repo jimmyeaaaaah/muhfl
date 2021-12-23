@@ -412,7 +412,14 @@ module KatsuraSolver : BackendSolver = struct
           message_string ~header:"Result" @@ "stop becasuse intractable (" ^ (show_debug_context debug_context) ^ ")";
           Status.Fail, true
         with
-        | Not_found -> failwith @@ "not matched"
+        | Not_found -> begin
+          let reg = Str.regexp "^tractable$" in
+          try
+            ignore @@ Str.search_forward reg stdout 0;
+            message_string ~header:"Result" @@ "stop becasuse tractable (" ^ (show_debug_context debug_context) ^ ")";
+            Status.Fail, true
+          with Not_found -> failwith @@ "not matched"
+        end
       end
     )
     
