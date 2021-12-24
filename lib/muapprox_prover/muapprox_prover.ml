@@ -961,7 +961,12 @@ let rec mu_elim_solver ?(was_weak_subtype_used=false) ?(cached_formula=None) ite
             false
             false
             false
-            true;
+            true
+          >>| (fun (s, d) ->
+            match s with
+            | Status.Unknown -> Status.Fail, d
+            | _ -> (s, d)
+          );
           solve_onlynu_onlyforall
             { solve_options with backend_solver = Some "z3" }
             ({ debug_context_ with backend_solver = Some "z3"; exists_assignment = Some exists_assignment; remove_disjunctions = solve_options.remove_disjunctions })
@@ -970,6 +975,11 @@ let rec mu_elim_solver ?(was_weak_subtype_used=false) ?(cached_formula=None) ite
             false
             false
             true
+          >>| (fun (s, d) ->
+            match s with
+            | Status.Unknown -> Status.Fail, d
+            | _ -> (s, d)
+          )
         ] else [])
       ) nu_only_heses
     | Some _ ->
