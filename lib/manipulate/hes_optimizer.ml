@@ -238,28 +238,6 @@ let evaluate_trivial_fixpoints (entry, rules) =
       rules in
   (entry, rules)
 
-let simplify (hes : Type.simple_ty Hflz.hes)=
-  let hes = InlineExpansion.optimize hes in
-  let hes = beta_hes hes in
-  let hes = simple_partial_evaluate_hes hes in
-  let hes = evaluate_trivial_boolean hes in
-  (* let hes = Trans.Simplify.hflz_hes hes false in *)
-  hes
-
-let rec simplify_all hes =
-  let hes' = simplify hes in
-  if hes' <> hes then simplify_all hes' else hes'
-
-let simplify_agg trivial_only hes =
-  let go hes =
-    let hes = InlineExpansion.inline_non_recursive_variables false trivial_only hes in
-    let hes = beta_hes hes in
-    let hes = simple_partial_evaluate_hes hes in
-    let hes = evaluate_trivial_boolean hes in
-    evaluate_trivial_fixpoints hes
-  in
-  hes |> go |> go
-
 (* 2つ、1つで下、1つで上、1つで中、betaされる *)
 (* 1つの述語の中で2回参照される *)
 let%expect_test "InlineExpansition.optimize" =
@@ -363,3 +341,210 @@ let eliminate_unreachable_predicates (hes : 'a Hflz.hes) : 'a Hflz.hes =
     List.mapi (fun i r -> r, (List.find_all ((=)i) reachables <> [])) rules
     |> List.filter_map (fun (r, b) -> if b then Some r else None) in
   Hflz.decompose_entry_rule rules
+
+let inline_bottom_sub hes =
+  let inlined = ref false in
+  let get_free_preds body =
+    Hflz.fvs body
+    |> IdSet.filter ~f:(fun p -> Id.is_pred_name p.name) in
+  let rules = Hflz.merge_entry_rule hes in
+  (* 自分のレベル以下のpredicateが出現しないpredicateを一番下のレベルに移動する *)
+  let (_, (result_rec, result_low)) =
+    List.fold_left
+      (fun (lower_preds, (result_rec, result_low)) rule ->
+        let {Hflz.var; fix = _fix; body} = rule in
+        let lower_preds = IdSet.add lower_preds var in
+        let free_predicates = get_free_preds body in
+        let (r1, r2) =
+          if IdSet.is_empty (IdSet.inter free_predicates lower_preds) then
+            result_rec, (rule::result_low)
+          else
+            (rule::result_rec), result_low in
+        (lower_preds, (r1, r2))
+      )
+      (IdSet.empty, ([], []))
+      (List.rev rules) in
+  print_endline @@ "rules: " ^ Print_syntax.show_hes ~readable:true rules;
+  print_endline @@ "result_rec: " ^ Print_syntax.show_hes ~readable:true result_rec;
+  print_endline @@ "result_low: " ^ Print_syntax.show_hes ~readable:true result_low;
+  if List.exists (fun {Hflz.var; _} -> var.name = Hflz.dummy_entry_name) result_low then
+    Hflz.decompose_entry_rule result_low, false
+  else begin
+    let results = result_rec @ result_low in
+    let rec inline_sub rules =
+      match List.rev rules with
+      | [] -> assert false
+      | [_] -> rules
+      | {Hflz.var; fix=_fix; body}::rem_rules -> begin
+        let rem_rules = List.rev rem_rules in
+        let free_predicates = get_free_preds body in
+        if IdSet.exists free_predicates ~f:(fun p -> Id.eq p var) then begin
+          rules
+        end else begin
+          inlined := true;
+          (* inlining in rules *)
+          let rem_rules =
+            List.map
+              (fun rule ->
+                let body =
+                  Trans.Subst.Hflz.hflz
+                    (IdMap.singleton var body)
+                    rule.Hflz.body in
+                let body = Trans.Simplify.hflz body in
+                { rule with body }
+              )
+              rem_rules in
+          inline_sub rem_rules
+        end
+      end
+    in
+    let results = inline_sub results in
+    print_endline @@ "results: " ^ Print_syntax.show_hes ~readable:true results;
+    Hflz.decompose_entry_rule results, !inlined
+  end
+
+let rec inline_bottom hes =
+  let hes, inlined = inline_bottom_sub hes in
+  if inlined then
+    inline_bottom hes
+  else
+    hes
+
+(* (∃x. (not p(x) \/ phi1) /\ (    p(x) \/ phi2)) <=> (phi1 \/ phi2) *)
+(* (∃x. (    p(x) /\ phi1) \/ (not p(x) /\ phi2)) <=> (phi1 \/ phi2) *)
+(* (∀x. (not p(x) \/ phi1) /\ (    p(x) \/ phi2)) <=> (phi1 /\ phi2) *)
+(* (∀x. (    p(x) /\ phi1) \/ (not p(x) /\ phi2)) <=> (phi1 /\ phi2) *)
+let simplify_non_deterministic_branch_sub phi =
+  let get_both_branch x p11 p12 p21 p22 =
+    let pred1, phi1 =
+      match p11 with
+      | Hflz.Pred _ -> p11, p12
+      | _ -> p12, p11 in
+    let pred2, phi2 =
+      match p21 with
+      | Hflz.Pred _ -> p21, p22
+      | _ -> p22, p21 in
+    if (IdSet.equal (IdSet.singleton {x with ty=`Int}) (Hflz.fvs pred1))
+        && not (IdSet.exists ~f:(fun x' -> Id.eq x x') (Hflz.fvs phi1))
+        && not (IdSet.exists ~f:(fun x' -> Id.eq x x') (Hflz.fvs phi2))
+        && Hflz.is_negation_of pred1 pred2 then
+      Some (phi1, phi2)
+    else None
+  in
+  let rec go phi = match phi with
+    | Hflz.Forall (x, phi) -> begin
+      match phi with
+      | And (Or (p11, p12), Or (p21, p22))
+      | Or (And (p11, p12), And (p21, p22)) -> begin
+        match get_both_branch x p11 p12 p21 p22 with
+        | None -> Hflz.Forall (x, go phi)
+        | Some (p1, p2) ->
+          Hflz.And (go p1, go p2)
+      end
+      | _ -> Forall (x, go phi)
+    end
+    | Exists (x, phi) -> begin
+      match phi with
+      | And (Or (p11, p12), Or (p21, p22))
+      | Or (And (p11, p12), And (p21, p22)) -> begin
+        match get_both_branch x p11 p12 p21 p22 with
+        | None -> Hflz.Exists (x, go phi)
+        | Some (p1, p2) ->
+          Hflz.Or (go p1, go p2)
+      end
+      | _ -> Exists (x, go phi)
+    end
+    | Var _ | Arith _ | Bool _ | Pred _ -> phi
+    | And (p1, p2) -> And (go p1, go p2)
+    | Or (p1, p2) -> Or (go p1, go p2)
+    | Abs (x, p) -> Abs (x, go p)
+    | App (p1, p2) -> App (go p1, go p2)
+  in
+  go phi
+  
+let simplify_non_deterministic_branch hes =
+  Hflz.merge_entry_rule hes
+  |> List.map
+      (fun {Hflz.var; body; fix} ->
+        let body = simplify_non_deterministic_branch_sub body in
+        {Hflz.var; body; fix}
+      )
+  |> Hflz.decompose_entry_rule
+
+let eliminate_unused_bindings_sub phi =
+  let rec go phi =
+    let go_binding x p1 f =
+      let (fvs, p1) = go p1 in
+      if IdSet.exists fvs ~f:(fun x' -> Id.eq x' x) then
+        (IdSet.remove fvs x, f x p1)
+      else
+        (fvs, p1) in
+    match phi with
+    | Hflz.Abs (x, p1) ->
+      (* cannot simplify erase abs because it changes type *)
+      let (fvs, p1) = go p1 in
+      (IdSet.remove fvs x, Hflz.Abs (x, p1))
+    | Forall (x, p1) ->
+      go_binding x p1 (fun x p -> Hflz.Forall (x, p))
+    | Exists (x, p1) ->
+      go_binding x p1 (fun x p -> Hflz.Exists (x, p))
+    | Var x -> (IdSet.singleton x, phi)
+    | Bool _ -> (IdSet.empty, phi)
+    | Or (p1, p2) ->
+      let (s1, p1) = go p1 in
+      let (s2, p2) = go p2 in
+      (IdSet.union s1 s2, Or (p1, p2))
+    | And (p1, p2) ->
+      let (s1, p1) = go p1 in
+      let (s2, p2) = go p2 in
+      (IdSet.union s1 s2, And (p1, p2))
+    | App (p1, p2) ->
+      let (s1, p1) = go p1 in
+      let (s2, p2) = go p2 in
+      (IdSet.union s1 s2, App (p1, p2))
+    | Arith a ->
+      let s = IdSet.of_list @@ List.map Id.remove_ty @@ Arith.fvs a in
+      (s, phi)
+    | Pred (_, as') ->
+      let s =
+        IdSet.union_list @@ List.map (fun a ->
+          IdSet.of_list @@ List.map Id.remove_ty @@ Arith.fvs a
+        ) as' in
+      (s, phi)
+    in
+  go phi |> snd
+
+let eliminate_unused_bindings hes =
+  hes
+  |> Hflz.merge_entry_rule
+  |> (fun hes -> print_endline @@ "before: " ^ Print_syntax.show_hes ~readable:true hes; hes)
+  |> List.map
+    (fun rule ->
+      { rule with
+        Hflz.body = eliminate_unused_bindings_sub rule.Hflz.body }
+    )
+  |> (fun hes -> print_endline @@ "after: " ^ Print_syntax.show_hes ~readable:true hes; hes)
+  |> Hflz.decompose_entry_rule
+
+let simplify (hes : Type.simple_ty Hflz.hes)=
+  let hes = InlineExpansion.optimize hes in
+  let hes = beta_hes hes in
+  let hes = simple_partial_evaluate_hes hes in
+  let hes = evaluate_trivial_boolean hes in
+  (* let hes = Trans.Simplify.hflz_hes hes false in *)
+  hes
+
+let rec simplify_all hes =
+  let hes' = simplify hes in
+  if hes' <> hes then simplify_all hes' else hes'
+
+let simplify_agg trivial_only hes =
+  let go hes =
+    let hes = InlineExpansion.inline_non_recursive_variables false trivial_only hes in
+    let hes = beta_hes hes in
+    let hes = simple_partial_evaluate_hes hes in
+    let hes = evaluate_trivial_boolean hes in
+    let hes = eliminate_unused_bindings hes in
+    evaluate_trivial_fixpoints hes
+  in
+  hes |> go |> go |> inline_bottom |> go |> simplify_non_deterministic_branch |> go |> eliminate_unreachable_predicates |> Eliminate_unused_argument.eliminate_unused_argument

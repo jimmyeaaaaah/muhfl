@@ -417,14 +417,23 @@ end
 
 let show_hflz = Hflmc2_util.fmt_string (hflz Hflmc2_syntax.Print.simple_ty_)
 let show_hflz_full v = Hflz.show (fun fmt ty_ -> Hflmc2_syntax.Type.pp_simple_ty fmt ty_) v
-let show_hes hes : string =
-  List.map
-    (fun rule ->
-      "{" ^
-      "fix: " ^ (Hflmc2_syntax.Fixpoint.show rule.fix) ^ "\n" ^
-      (* "var: " ^ (Id.show Hflmc2_syntax.Type.pp_simple_ty rule.var) ^ "\n" ^ *)
-      "var: (" ^ (Id.to_string rule.var) ^ " : " ^ Hflmc2_util.fmt_string simple_ty rule.var.ty ^ ")\n" ^
-      "body: " ^ (show_hflz rule.body) ^ 
-      "}"
-    ) hes
-  |> String.concat "\n"
+let show_hes ?(readable=false) hes : string =
+  if readable then
+    "{" ^
+    (List.map
+      (fun rule ->
+        Id.to_string rule.var ^ " =" ^ (match rule.fix with Hflmc2_syntax.Fixpoint.Greatest -> "ν" | Least -> "μ") ^ " " ^ (show_hflz rule.body)
+      )
+      hes
+    |> String.concat ";\n") ^ "}"
+  else
+    List.map
+      (fun rule ->
+        "{" ^
+        "fix: " ^ (Hflmc2_syntax.Fixpoint.show rule.fix) ^ "\n" ^
+        (* "var: " ^ (Id.show Hflmc2_syntax.Type.pp_simple_ty rule.var) ^ "\n" ^ *)
+        "var: (" ^ (Id.to_string rule.var) ^ " : " ^ Hflmc2_util.fmt_string simple_ty rule.var.ty ^ ")\n" ^
+        "body: " ^ (show_hflz rule.body) ^ 
+        "}"
+      ) hes
+    |> String.concat "\n"

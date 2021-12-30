@@ -94,7 +94,7 @@ let get_hflz_type phi =
 
 open Hflmc2_syntax
 
-let assign_unique_variable_id (hes : Type.simple_ty Hflz.hes_rule list): Type.simple_ty Hflz.hes_rule list * (unit Id.t * Type.simple_ty Type.arg Id.t) list =
+let assign_unique_variable_id_sub id_change_map env phi =
   let to_ty ty = match ty with
     | Type.TyInt -> failwith "ty"
     | TySigma s -> s
@@ -103,11 +103,6 @@ let assign_unique_variable_id (hes : Type.simple_ty Hflz.hes_rule list): Type.si
     | Type.TyInt -> `Int
     | TySigma _ -> failwith "arithty"
   in
-  let id_change_map = ref [] in
-  let global_env =
-    List.map (fun {Hflz.var; _} ->
-      (Id.remove_ty var, {Id.name = var.name; id = Id.gen_id (); ty = Type.TySigma (var.Id.ty)})
-    ) hes in
   let rec go env body = match body with
     | Hflz.Bool b -> Hflz.Bool b
     | Var v -> begin
@@ -143,9 +138,22 @@ let assign_unique_variable_id (hes : Type.simple_ty Hflz.hes_rule list): Type.si
     end
     | Op (o, ps) -> Op (o, List.map (go_arith env) ps)
   in
+  go env phi
+
+let assign_unique_variable_id (hes : Type.simple_ty Hflz.hes_rule list): Type.simple_ty Hflz.hes_rule list * (unit Id.t * Type.simple_ty Type.arg Id.t) list =
+  let to_ty ty = match ty with
+    | Type.TyInt -> failwith "ty"
+    | TySigma s -> s
+  in
+  let id_change_map = ref [] in
+  let global_env =
+    List.map (fun {Hflz.var; _} ->
+      (Id.remove_ty var, {Id.name = var.name; id = Id.gen_id (); ty = Type.TySigma (var.Id.ty)})
+    ) hes in
+  
   let hes =
     List.map (fun {Hflz.var; body; fix} ->
-      let body = go global_env body in
+      let body = assign_unique_variable_id_sub id_change_map global_env body in
       let var =
         match List.find_all (fun (e, _) -> Id.eq e var) global_env with
         | [(_, v)] -> {v with ty = to_ty v.Id.ty}
