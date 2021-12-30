@@ -615,74 +615,75 @@ let range n m =
     else i::(go (i + 1)) in
   go n
 
-(* for replace_occurences *)
-let make_decrement rec_lex_tvars guessed_conditions term  =
-  let rec_lex_tvars = Env.lookup term rec_lex_tvars in
-  let new_rec_lex_tvars =
-    List.map
-      (fun tvar -> (tvar, Id.gen ~name:(tvar.Id.name ^ "_n") Type.TyInt))
-      rec_lex_tvars
-    |> Env.create
-      in
-  let body =
-    let a_to_i v = Arith.Var {v with Id.ty=`Int} in
-    let rec go xs = match xs with
-      | x1::x2::xs -> begin
-        let new_x1 = Env.lookup x1 new_rec_lex_tvars in
-        let new_xs = List.map (fun v -> v, (Env.lookup v new_rec_lex_tvars)) (x2::xs) in 
-        Or (
-          And (
-            Pred (Gt, [a_to_i x1; Int 1]),
-            And (
-              Pred (Ge, [a_to_i new_x1; Op (Sub, [a_to_i x1; Int 1])]),
-              List.map
-                (fun (x, new_x) -> Pred (Ge, [a_to_i new_x; a_to_i x]))
-                new_xs |>
-              formula_fold (fun a b -> And (a, b))
-            )
-          ),
-          And (
-            Pred (Le, [a_to_i x1; Int 1]),
-            And (
-              formula_fold
-                (fun a b -> And (a, b))
-                (List.map (fun t -> Pred (Ge, [a_to_i new_x1; t])) guessed_conditions),
-              go (x2::xs)
-            )
+let make_app new_fml rec_vars formula_type_terms guessed_conditions =
+  let pres, dec, posts =
+    List.fold_left
+      (fun (pres, dec, posts) (f, terms) ->
+        if f = (Some true) then (
+          assert (posts = []);
+          (pres, Some terms, posts)
+        ) else (
+          match dec with
+          | None -> (terms::pres, dec, posts)
+          | Some _ -> (pres, dec, terms::posts)
+        )
+          
+      )
+      ([], None, [])
+      rec_vars in
+  let a_to_i v = Arith.Var {v with Id.ty=`Int} in
+  let pres =
+    List.flatten pres
+    |> List.map (fun p -> Arith (a_to_i p)) in
+  let posts =
+    List.flatten posts
+    |> List.map (fun p -> Arith (a_to_i p)) in
+  match dec with
+  | Some dec -> begin
+    let t1, t2 = match dec with
+      | [t1; t2] -> (t1, t2)
+      | _ -> assert false in
+    let to_app' t1 t2 =
+      to_app
+        (
+          App (
+            App (
+              to_app new_fml pres,
+              t1
+            ),
+            t2
           )
         )
-      end              
-      | [x1] -> begin
-        let new_x1 = Env.lookup x1 new_rec_lex_tvars in
-        Pred (Ge, [a_to_i new_x1; Op (Sub, [a_to_i x1; Int 1])])
-      end
-      | [] -> failwith "go1" in
-    let imply_left = go rec_lex_tvars in
-    Some (fun inner ->
-      Or (
-        Hflz.negate_formula imply_left,
-        inner
-      )), new_rec_lex_tvars |> List.map snd |> List.map (fun t -> {t with Id.ty=`Int})
-  in
-  body
-
-let make_app new_fml (rec_vars : ((unit Type.ty t -> Type.simple_ty t) option * [> `Int ] Id.t list) list) formula_type_terms = 
-  let body =
+        (posts @ formula_type_terms)
+    in
+    let temp_t_var =
+      Id.gen ~name:(t2.name ^ "_n") Type.TyInt in
+    Or (
+      to_app'
+        (Arith (
+          Arith.Op (Arith.Sub, [a_to_i t1; Int 1])
+        ))
+        (Arith (a_to_i t2)),
+      Forall (
+        temp_t_var,
+        Or (
+          formula_fold
+            (fun a b -> Or (a, b))
+            (List.map (fun cond -> Pred (Lt, [a_to_i temp_t_var; cond])) guessed_conditions),
+          to_app'
+            (Arith (a_to_i temp_t_var))
+            (Arith (
+                Arith.Op (Arith.Sub, [a_to_i t2; Int 1])
+            ))
+        )  
+      )
+    )
+  end
+  | None ->
     to_app
       new_fml
-      ((List.map
-        (fun (_, v) -> List.map (fun v -> Arith (Var v)) v)
-        rec_vars
-      |> List.flatten) @ formula_type_terms) in
-  let funcs = List.filter_map (fun (a, b) -> match a with Some s -> Some (s, b) | None -> None) rec_vars |> List.rev in
-  funcs
-  |> List.fold_left
-    (fun a (tf, vs) ->
-      to_forall
-        (List.map (fun v -> { v with Id.ty=Type.TyInt}) vs)
-        (tf a)
-    ) body
-    
+      (pres @ formula_type_terms)
+  
 let replace_occurences
     (coe1: int)
     (coe2 : int)
@@ -738,10 +739,13 @@ let replace_occurences
         |> List.map
           (fun pvar' ->
             try let term = Env.lookup pvar' env in
-              if Id.eq pvar' pvar then
-                make_decrement rec_lex_tvars guessed_conditions term
+              if Id.eq pvar' pvar then (
+                if List.length (Env.lookup term rec_lex_tvars) <> 2 then
+                  failwith @@ "rec_lex_tvars should be 2 (actual: " ^ string_of_int (List.length (Env.lookup term rec_lex_tvars)) ^ ")";
+                (* assert (List.length (Env.lookup term rec_lex_tvars) = 2); *)
+                (Some true, Env.lookup term rec_lex_tvars |> List.map (fun v -> {v with Id.ty=`Int}))
                 (* Arith.Op (Sub, [Var{term with Id.ty=`Int}; Int 1]) *)
-              else
+              ) else
                 (None, Env.lookup term rec_lex_tvars |> List.map (fun v -> {v with Id.ty=`Int}))
             with
               Not_found ->
@@ -787,7 +791,7 @@ let replace_occurences
             formula_type_ids
             (
               let rec_vars = make_args Env.empty scoped_rec_tvars in
-              make_app new_fml rec_vars formula_type_terms
+              make_app new_fml rec_vars formula_type_terms guessed_conditions
             )
           )
       else begin
@@ -816,7 +820,7 @@ let replace_occurences
                     (rec_vars @ formula_type_terms)
                 else
                   let rec_vars = make_args (Env.create (Core.List.zip_exn new_pvars new_tvars)) scoped_rec_tvars in
-                  make_app new_fml rec_vars formula_type_terms
+                  make_app new_fml rec_vars formula_type_terms guessed_conditions
               )
             )
           )
