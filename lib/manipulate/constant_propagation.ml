@@ -170,7 +170,6 @@ let get_constant_substitution occurrences parameters =
         lss
     )
     op;
-  (* 各substituionが得られる *)
   let results =
     List.map
       (fun (p, (_, params)) ->
@@ -190,7 +189,6 @@ let get_constant_substitution occurrences parameters =
                   froms in
               match froms with
               | [x] -> Some x
-              | [] -> Some (Var (Id.gen ~name:"unused" (Type.TyBool ())))
               | _ -> None
             end
           )

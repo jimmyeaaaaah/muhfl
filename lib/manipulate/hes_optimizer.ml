@@ -547,4 +547,11 @@ let simplify_agg trivial_only hes =
     let hes = eliminate_unused_bindings hes in
     evaluate_trivial_fixpoints hes
   in
-  hes |> go |> go |> inline_bottom |> go |> simplify_non_deterministic_branch |> go |> eliminate_unreachable_predicates |> Eliminate_unused_argument.eliminate_unused_argument
+  hes
+  |> go |> go
+  |> inline_bottom |> go
+  |> simplify_non_deterministic_branch |> go
+  |> eliminate_unreachable_predicates
+  |> Eliminate_unused_argument.eliminate_unused_argument
+  |> Constant_propagation.run |> go
+  

@@ -12,11 +12,11 @@ let map_file_path path converter =
 
 let main filepath optimization agg show_style trivial_only_agg =
   let hes = Muapprox.parse filepath in
-  let () =
+  (* let () =
     let hes = Muapprox.constant_propagation hes in
     let path2 = filepath ^ "_cp.in" in
     ignore @@ Muapprox.Manipulate.Print_syntax.MachineReadable.save_hes_to_file ~file:path2 ~without_id:(Stdlib.(=) show_style Abbrev_id) true hes;
-    print_endline @@ "Constant Propagation: saved in " ^ path2 in
+    print_endline @@ "Constant Propagation: saved in " ^ path2 in *)
   let hes =
     if optimization then Muapprox.eliminate_unused_argument hes else hes in
   let hes = Muapprox.Manipulate.Hes_optimizer.simplify_all hes in
