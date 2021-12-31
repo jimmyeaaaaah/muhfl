@@ -1,35 +1,35 @@
 %HES
-Sentry  =v
-  ∃x_1677.
-   ∃x_1669.
-    ((x_1669 <= 0 \/ x_1677 <= 0)
-     \/ X_5 0 (\u_1680.\k_mm_1681.k_mm_1681 x_1669)
-         (\u_1684.\k_mm_1685.k_mm_1685 x_1677)
-         (\x_1659.x_1659 0 (\x_1662.false)))
-    /\ (x_1669 > 0 /\ x_1677 > 0 \/ false).
-ACK fm_8 fn_7 k_ack_200 =v
+Sentry =v
+  ∀x_1677. 
+   ∀x_1669. 
+    (x_1669 <= 0 \/ x_1677 <= 0
+     \/ X_5 0 (\u_1680. \k_mm_1681. k_mm_1681 x_1669)
+         (\u_1684. \k_mm_1685. k_mm_1685 x_1677)
+         (\x_1659. x_1659 0 (\x_1662. true)))
+    /\ (x_1669 > 0 /\ x_1677 > 0 \/ true).
+ACK fm_8 fn_7 k_ack_200 =u
   CHECK1 fm_8
-   (\b_1606.
+   (\b_1606. 
      (b_1606 != 1
       \/ fn_7 0
-          (\x_1617.k_ack_200 (\u_1630.\k_succ_1631.k_succ_1631 (x_1617 + 1))))
+          (\x_1617. k_ack_200 (\u_1630. \k_succ_1631. k_succ_1631 (x_1617 + 1))))
      /\ (b_1606 = 1
          \/ CHECK1 fn_7
-             (\bn_1627.
+             (\bn_1627. 
                (bn_1627 != 1
                 \/ PRED fm_8
-                    (\x_1635.
-                      ACK x_1635 (\u_1643.\k_ack_1644.k_ack_1644 1) k_ack_200))
+                    (\x_1635. 
+                      ACK x_1635 (\u_1643. \k_ack_1644. k_ack_1644 1) k_ack_200))
                /\ (bn_1627 = 1
                    \/ PRED fn_7
-                       (\x_1640.
+                       (\x_1640. 
                          ACK fm_8 x_1640
-                          (\fr_1649.
-                            PRED fm_8 (\x_1654.ACK x_1654 fr_1649 k_ack_200))))))).
-CHECK1 f k_check1_90 =v
+                          (\fr_1649. 
+                            PRED fm_8 (\x_1654. ACK x_1654 fr_1649 k_ack_200))))))).
+CHECK1 f k_check1_90 =u
   f 0
-   (\x_1612.(x_1612 != 0 \/ k_check1_90 1) /\ (x_1612 = 0 \/ k_check1_90 0)).
-PRED fx k_pred_160 =v
-  fx 0 (\x_1691.k_pred_160 (\u_1671.\k_pred_1672.k_pred_1672 (x_1691 - 1))).
-X_5 flag fm fn k_x_594 =v
+   (\x_1612. (x_1612 != 0 \/ k_check1_90 1) /\ (x_1612 = 0 \/ k_check1_90 0)).
+PRED fx k_pred_160 =u
+  fx 0 (\x_1691. k_pred_160 (\u_1671. \k_pred_1672. k_pred_1672 (x_1691 - 1))).
+X_5 flag fm fn k_x_594 =u
   (flag != 1 \/ ACK fm fn k_x_594) /\ (flag = 1 \/ X_5 1 fm fn k_x_594).

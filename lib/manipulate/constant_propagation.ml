@@ -1,6 +1,11 @@
 open Hflmc2_syntax
 open Hflz
 
+let log_src = Logs.Src.create "Optimizer"
+module Log = (val Logs.src_log @@ log_src)
+
+let log_string = Hflz_util.log_string Log.info
+
 let get_occurrences hes =
   let rules = merge_entry_rule hes in
   let map = Hashtbl.create 10 in
@@ -37,18 +42,6 @@ let get_occurrences hes =
     | Exists (_, p) -> go p
   in
   List.iter (fun {body; _} -> go body) rules;
-  (* let () =
-    print_endline "Constant propagation";
-    Hashtbl.iter
-      (fun k v ->
-        print_endline @@ Id.to_string k ^ ":";
-        List.iter
-          (fun args ->
-            print_endline @@ "[" ^ Hflmc2_util.show_list (fun t -> Print_syntax.show_hflz t) args ^ "]"
-          )
-          v
-      )
-      map in *)
   let results =
     List.map
       (fun {var; _} ->
@@ -62,13 +55,13 @@ let get_occurrences hes =
       )
       rules in
   let () =
-    print_endline "Occurrences";
+    log_string "Occurrences";
     List.iter
       (fun (k, v) ->
-        print_endline @@ Id.to_string k ^ ":";
+        log_string @@ Id.to_string k ^ ":";
         List.iter
           (fun args ->
-            print_endline @@ Hflmc2_util.show_list (fun t -> Print_syntax.show_hflz t) args
+            log_string @@ Hflmc2_util.show_list (fun t -> Print_syntax.show_hflz t) args
           )
           v
       )
@@ -179,27 +172,32 @@ let get_constant_substitution occurrences parameters =
             let froms = Mygraph2.reachable_nodes_from g (to_node param) in
             if List.exists ((=)None) froms then None
             else begin
-              let froms =
-                List.filter_map
-                  (fun a ->
-                    match a with
-                    | Some (Var _) -> None
-                    | Some t -> Some t
-                    | None -> None)
-                  froms in
-              match froms with
-              | [x] -> Some x
-              | _ -> None
+              if List.exists (fun a -> a = None) froms
+              then None
+              else begin
+                let froms =
+                  List.filter_map
+                    (fun a ->
+                      match a with
+                      | Some (Var _) -> None
+                      | Some t -> Some t
+                      | None -> None)
+                    froms in
+                match froms with
+                | [x] -> Some x
+                | [] -> assert false
+                | _ -> None
+              end
             end
           )
           params
       )
       op in
   let () =
-    print_endline "Substitution:";
+    log_string "Substitution:";
     List.iter
       (fun (p, params) ->
-        print_endline @@
+        log_string @@
           Id.to_string p ^ ": " ^
           (Hflmc2_util.show_list 
             (fun t_opt ->
@@ -306,8 +304,8 @@ let substitute_occurrences hes subst =
   let rules, _ =
     Hflz_util.assign_unique_variable_id rules in
   let () =
-    print_endline "Substed";
-    print_endline @@ Print_syntax.show_hes ~readable:true rules in
+    log_string "Substed";
+    log_string @@ Print_syntax.show_hes ~readable:true rules in
   decompose_entry_rule rules
   
 let run hes =
