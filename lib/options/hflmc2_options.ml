@@ -38,6 +38,8 @@ let no_temp_files = ref (Obj.magic())
 let try_weak_subtype = ref (Obj.magic())
 let backend_options = ref (Obj.magic())
 let remove_disjunctions = ref (Obj.magic())
+let only_remove_disjunctions = ref (Obj.magic())
+let formula_margin = ref (Obj.magic())
 (******************************************************************************)
 (* Parser                                                                     *)
 (******************************************************************************)
@@ -133,6 +135,10 @@ type params =
   (** Opitons for backend nu-HFL(Z) solvers *)
   
   ; remove_disjunctions : bool [@default false]
+  
+  ; only_remove_disjunctions : bool [@default false]
+  
+  ; formula_margin: int [@default 100]
   }
 [@@deriving cmdliner,show]
 
@@ -169,6 +175,8 @@ let set_up_params params =
   set_ref try_weak_subtype            params.try_weak_subtype;
   set_ref backend_options             params.backend_options;
   set_ref remove_disjunctions         params.remove_disjunctions;
+  set_ref only_remove_disjunctions    params.only_remove_disjunctions;
+  set_ref formula_margin              params.formula_margin;
   params.input
 
 (******************************************************************************)

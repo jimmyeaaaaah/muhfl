@@ -4,6 +4,8 @@ module Formula = Hflmc2_syntax.Formula
 open Hflz
 open Hflmc2_syntax.Print
 
+let formula_margin = ref 100
+
 let id : 'ty Id.t t =
   fun ppf x -> Fmt.pf ppf "%s" (Id.to_string x)
 let simple_ty_ = simple_ty_
@@ -310,7 +312,7 @@ module MachineReadable = struct
     let oc = open_out file in
     let fmt = Format.formatter_of_out_channel oc in
     (* Format.pp_set_margin fmt 1000; *)
-    Format.pp_set_margin fmt 80;
+    Format.pp_set_margin fmt !formula_margin;
     Printf.fprintf oc "%%HES\n" ;
     hflz_hes' Hflmc2_syntax.Print.simple_ty_ show_forall without_id fmt hes;
     Format.pp_print_flush fmt ();
@@ -408,7 +410,7 @@ module AsProgram = struct
     let oc = open_out file in
     let fmt = Format.formatter_of_out_channel oc in
     (* Format.pp_set_margin fmt 1000; *)
-    Format.pp_set_margin fmt 80;
+    Format.pp_set_margin fmt !formula_margin;
     hflz_hes' Hflmc2_syntax.Print.simple_ty_ true without_id fmt hes;
     Format.pp_print_flush fmt ();
     close_out oc;

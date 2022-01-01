@@ -61,6 +61,7 @@ let get_solve_options file =
   let open Muapprox_prover.Solve_options in
   let approx_parameter, use_custom_parameter =
     get_approx_parameter !Options.coe !Options.coe_arguments !Options.default_lexicographic_order in
+  Manipulate.Print_syntax.formula_margin := !Options.formula_margin;
   {
     no_backend_inlining = !Options.no_backend_inlining;
     log_level = !Options.log_level;
@@ -95,6 +96,7 @@ let get_solve_options file =
     try_weak_subtype = !Options.try_weak_subtype;
     backend_options = !Options.backend_options;
     remove_disjunctions = !Options.remove_disjunctions;
+    only_remove_disjunctions = !Options.only_remove_disjunctions;
   }
 
 let simplify_agg_ hes =
@@ -141,3 +143,4 @@ let branching_time_program = Branching_time_program.branching_time_program
 let convert_nu_hflz_to_program_with_exception = Muapprox_prover.Mochi_solver.convert_nu_hflz_to_program_with_exception
 let remove_disjunctions = Manipulate.Remove_disjunctions.convert
 let constant_propagation =  Manipulate.Constant_propagation.run
+let simplify_if_condition = Manipulate.Simplify_if_condition.run

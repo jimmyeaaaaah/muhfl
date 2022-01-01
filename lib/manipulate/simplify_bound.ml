@@ -1,45 +1,103 @@
 open Hflmc2_syntax
 open Hflz
 
-let string_of_id id =  
-  let replace_apos s =
-    s
-    |> Str.global_replace (Str.regexp "'") "_ap_"
-    |> Str.global_replace (Str.regexp "!") "_exc_"
-    |> Str.global_replace (Str.regexp "#") "_sha_"
-  in
-  Id.to_string id
-  |> replace_apos
- 
-let convert_to_smt2 (exprs : 'a t list) =
-  let used_variables = ref [] in
+module ConvertLib = struct
+  let string_of_id id =
+    let replace_apos s =
+      s
+      |> Str.global_replace (Str.regexp "'") "_ap_"
+      |> Str.global_replace (Str.regexp "!") "_exc_"
+      |> Str.global_replace (Str.regexp "#") "_sha_"
+    in
+    Id.to_string id
+    |> replace_apos
+  
   let trans_op op = match op with
     | Arith.Add -> "+"
     | Sub -> "-"
     | Mult -> "*"
     | Div | Mod -> failwith "trans_op: unsupported operator"
-  in
-  let rec trans_arith a1 = match a1 with
+  
+  let rec trans_arith used_variables a1 = match a1 with
     | Arith.Int i -> string_of_int i
     | Var v ->
       used_variables := v :: !used_variables;
       (* with id *)
       string_of_id v
-    | Op (op, [a1; a2]) -> "(" ^ trans_op op ^ " " ^ trans_arith a1 ^ " " ^ trans_arith a2 ^ ")"
+    | Op (op, [a1; a2]) -> "(" ^ trans_op op ^ " " ^ trans_arith used_variables a1 ^ " " ^ trans_arith used_variables a2 ^ ")"
     | Op _ -> failwith "trans_arith"
-  in
+  
   let trans_pred op = match op with
     | Formula.Eq -> "="
     | Le -> "<="
     | Ge -> ">="
     | Lt -> "<"
     | Gt -> ">"
-    | Neq -> failwith "trans_pred: Neq" in
+    | Neq -> failwith "trans_pred: Neq"
+  
+  let to_op s = match s with
+    | "+" -> Arith.Add
+    | "-" -> Arith.Sub
+    | "*" -> Arith.Mult
+    | _ -> failwith "to_op"
+
+  let to_predicate s = match s with
+    | "<=" -> Formula.Le
+    | ">=" -> Formula.Ge
+    | "<" -> Formula.Lt
+    | ">" -> Formula.Gt
+    | "=" -> Formula.Eq
+    | "<>" -> Formula.Neq
+    | _ -> failwith @@ "to_predicate: " ^ s
+
+  let rec to_ors ors = match ors with
+    | [x] -> x
+    | x::xs -> Or (x, to_ors xs)
+    | _ -> failwith "to_ors"
+    
+  let flip_pred = function
+    | Formula.Eq -> Formula.Eq
+    | Neq -> Neq
+    | Le -> Ge
+    | Ge -> Le
+    | Lt -> Gt
+    | Gt -> Lt
+
+  let parse_sexp s =
+    let open Core in
+    match Sexplib.Sexp.parse s with
+    | Done (model, _) -> begin
+      match model with
+      | List [Atom "goals"; List (Atom "goal"::xs)] -> begin
+        match xs with
+        | (Atom "false"::_) -> Sexp.Atom "false"
+        | _ -> begin
+          let xs = List.filter ~f:(fun x -> match x with
+            | (Atom _) -> false
+            | _ -> true
+          ) xs in
+          let body = 
+            match xs with
+            | [] -> Sexp.Atom "true"
+            | [x] -> x
+            | xs -> List (Atom "and"::xs) in
+          body
+        end
+      end
+      | _ -> failwith @@ "simplify_body: " ^ Sexp.to_string model
+    end
+    | _ -> failwith "failed to parse model (2)" 
+end
+
+open ConvertLib
+
+let convert_to_smt2 (exprs : 'a t list) =
+  let used_variables = ref [] in
   let trans_pred_ op a1 a2 =
     if op = Formula.Neq then
       None
     else
-      Some ("(" ^ trans_pred op ^ " " ^ trans_arith a1 ^ " " ^ trans_arith a2 ^ ")")
+      Some ("(" ^ trans_pred op ^ " " ^ trans_arith used_variables a1 ^ " " ^ trans_arith used_variables a2 ^ ")")
   in
   let preds, not_useds =
     List.map
@@ -69,55 +127,6 @@ let convert_to_smt2 (exprs : 'a t list) =
     not_useds
   end
 
-let parse_sexp s =
-  let open Core in
-  match Sexplib.Sexp.parse s with
-  | Done (model, _) -> begin
-    match model with
-    | List [Atom "goals"; List (Atom "goal"::xs)] -> begin
-      let xs = List.filter ~f:(fun x -> match x with
-        | (Atom _) -> false
-        | _ -> true
-      ) xs in
-      let body = 
-        match xs with
-        | [] -> Sexp.Atom "true"
-        | [x] -> x
-        | xs -> List (Atom "and"::xs) in
-      body
-    end
-    | _ -> failwith @@ "simplify_body: " ^ Sexp.to_string model
-  end
-  | _ -> failwith "failed to parse model (2)" 
-
-let to_op s = match s with
-  | "+" -> Arith.Add
-  | "-" -> Arith.Sub
-  | "*" -> Arith.Mult
-  | _ -> failwith "to_op"
-
-let to_predicate s = match s with
-  | "<=" -> Formula.Le
-  | ">=" -> Formula.Ge
-  | "<" -> Formula.Lt
-  | ">" -> Formula.Gt
-  | "=" -> Formula.Eq
-  | "<>" -> Formula.Neq
-  | _ -> failwith @@ "to_predicate: " ^ s
-
-let rec to_ors ors = match ors with
-  | [x] -> x
-  | x::xs -> Or (x, to_ors xs)
-  | _ -> failwith "to_ors"
-  
-let flip_pred = function
-  | Formula.Eq -> Formula.Eq
-  | Neq -> Neq
-  | Le -> Ge
-  | Ge -> Le
-  | Lt -> Gt
-  | Gt -> Lt  
-  
 let to_hflz const_bounds variables parsed =
   let open Core in
   print_endline "sexp";

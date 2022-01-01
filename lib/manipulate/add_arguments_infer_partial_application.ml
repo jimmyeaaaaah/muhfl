@@ -426,7 +426,7 @@ let set_use_tag (rules : ptype thes_rule list): ptype thes_rule list =
   let rules = set_tag_in_undetermined_tags rules TUse in
   rules
   
-let infer with_partial_analysis with_usage_analysis (hes : 'a Hflz.hes) add_arg_coe1 add_arg_coe2 no_temp_files =
+let infer with_partial_analysis with_usage_analysis (hes : 'a Hflz.hes) add_arg_coe1 add_arg_coe2 no_temp_files (do_not_use_inner_ty : bool) =
   let original_rules = Hflz.merge_entry_rule hes in
   
   let rules =
@@ -464,7 +464,7 @@ let infer with_partial_analysis with_usage_analysis (hes : 'a Hflz.hes) add_arg_
     let rules = Add_arguments_tuple.to_thflz2 rules in
     Add_arguments_tuple.check_thflz2_type rules;
     let rules =
-      if with_usage_analysis then Add_arguments_infer_usage.infer_thflz_type rules outer_mu_funcs else Add_arguments_infer_usage.set_use_tag rules in
+      if with_usage_analysis then Add_arguments_infer_usage.infer_thflz_type rules outer_mu_funcs do_not_use_inner_ty else Add_arguments_infer_usage.set_use_tag rules in
     let () =
       (* print_endline "result:";
       print_endline @@
@@ -478,7 +478,7 @@ let infer with_partial_analysis with_usage_analysis (hes : 'a Hflz.hes) add_arg_
     rules in
   
   let rules, id_type_map, id_ho_map =
-    Add_arguments_adding.add_params add_arg_coe1 add_arg_coe2 outer_mu_funcs rules in
+    Add_arguments_adding.add_params add_arg_coe1 add_arg_coe2 outer_mu_funcs rules do_not_use_inner_ty in
   let rules = Add_arguments_adding.to_hes rules in
   
   let hes = Hflz.decompose_entry_rule rules in

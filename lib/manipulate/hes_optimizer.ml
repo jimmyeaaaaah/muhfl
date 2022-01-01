@@ -6,6 +6,19 @@ module Hesutil = struct
     | 
 end *)
 
+let log_src = Logs.Src.create "Optimizer"
+module Log = (val Logs.src_log @@ log_src)
+
+let log_string = Hflz_util.log_string Log.info
+
+let show_hes s hes =
+  print_endline s;
+  print_endline
+    (hes
+    |> Hflz.merge_entry_rule
+    |> Print_syntax.show_hes ~readable:true);
+  hes
+  
 let get_pvar_called_counts hes =
   let preds, graph = Hflz_util.get_dependency_graph hes in
   let graph = Mygraph.reverse_edges graph in
@@ -113,7 +126,7 @@ end*) = struct
   let inline_non_recursive_variables (no_ref_only : bool) (trivial_only : bool) (org_hes : 'a Hflz.hes) =
     let org_rules = Hflz.merge_entry_rule org_hes in
     let rec_flags = get_recursivity org_rules in
-    print_endline @@ Hflmc2_util.show_list (fun (id, f) -> id.Id.name ^ ": " ^ string_of_bool f) rec_flags;
+    log_string @@ Hflmc2_util.show_list (fun (id, f) -> id.Id.name ^ ": " ^ string_of_bool f) rec_flags;
     let to_inlinings =
       rec_flags
       |> List.tl
@@ -364,9 +377,9 @@ let inline_bottom_sub hes =
       )
       (IdSet.empty, ([], []))
       (List.rev rules) in
-  print_endline @@ "rules: " ^ Print_syntax.show_hes ~readable:true rules;
-  print_endline @@ "result_rec: " ^ Print_syntax.show_hes ~readable:true result_rec;
-  print_endline @@ "result_low: " ^ Print_syntax.show_hes ~readable:true result_low;
+  log_string @@ "rules: " ^ Print_syntax.show_hes ~readable:true rules;
+  log_string @@ "result_rec: " ^ Print_syntax.show_hes ~readable:true result_rec;
+  log_string @@ "result_low: " ^ Print_syntax.show_hes ~readable:true result_low;
   if List.exists (fun {Hflz.var; _} -> var.name = Hflz.dummy_entry_name) result_low then
     Hflz.decompose_entry_rule result_low, false
   else begin
@@ -399,8 +412,7 @@ let inline_bottom_sub hes =
       end
     in
     let results = inline_sub results in
-    print_endline @@ "results: " ^ Print_syntax.show_hes ~readable:true results;
-    Hflz.decompose_entry_rule results, !inlined
+    Hflz.decompose_entry_rule results |> show_hes "inline_bottom_sub(after):", !inlined
   end
 
 let rec inline_bottom hes =
@@ -516,15 +528,15 @@ let eliminate_unused_bindings_sub phi =
 
 let eliminate_unused_bindings hes =
   hes
+  |> show_hes "eliminate_unused_bindings (before):"
   |> Hflz.merge_entry_rule
-  |> (fun hes -> print_endline @@ "before: " ^ Print_syntax.show_hes ~readable:true hes; hes)
   |> List.map
     (fun rule ->
       { rule with
         Hflz.body = eliminate_unused_bindings_sub rule.Hflz.body }
     )
-  |> (fun hes -> print_endline @@ "after: " ^ Print_syntax.show_hes ~readable:true hes; hes)
   |> Hflz.decompose_entry_rule
+  |> show_hes "eliminate_unused_bindings (after):"
 
 let simplify (hes : Type.simple_ty Hflz.hes)=
   let hes = InlineExpansion.optimize hes in
@@ -540,18 +552,33 @@ let rec simplify_all hes =
 
 let simplify_agg trivial_only hes =
   let go hes =
-    let hes = InlineExpansion.inline_non_recursive_variables false trivial_only hes in
-    let hes = beta_hes hes in
-    let hes = simple_partial_evaluate_hes hes in
-    let hes = evaluate_trivial_boolean hes in
-    let hes = eliminate_unused_bindings hes in
-    evaluate_trivial_fixpoints hes
+    hes
+    |> show_hes "simplify_agg (a0)"
+    |> InlineExpansion.inline_non_recursive_variables false trivial_only
+    |> show_hes "simplify_agg (a1)"
+    |> beta_hes
+    |> show_hes "simplify_agg (a2)"
+    |> simple_partial_evaluate_hes
+    |> show_hes "simplify_agg (a3)"
+    |> evaluate_trivial_boolean
+    |> show_hes "simplify_agg (a4)"
+    |> eliminate_unused_bindings
+    |> show_hes "simplify_agg (a5)"
+    |> evaluate_trivial_fixpoints
+    |> show_hes "simplify_agg (a6)"
   in
   hes
+  |> show_hes "simplify_agg (1)"
   |> go |> go
+  |> show_hes "simplify_agg (2)"
   |> inline_bottom |> go
+  |> show_hes "simplify_agg (3)"
   |> simplify_non_deterministic_branch |> go
+  |> show_hes "simplify_agg (4)"
   |> eliminate_unreachable_predicates
+  |> show_hes "simplify_agg (5)"
   |> Eliminate_unused_argument.eliminate_unused_argument
+  |> show_hes "simplify_agg (6)"
   |> Constant_propagation.run |> go
+  |> show_hes "simplify_agg (7)"
   

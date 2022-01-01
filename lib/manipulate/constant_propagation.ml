@@ -9,13 +9,6 @@ let log_string = Hflz_util.log_string Log.info
 let get_occurrences hes =
   let rules = merge_entry_rule hes in
   let map = Hashtbl.create 10 in
-  let add_map x args =
-    match Hashtbl.find_opt map x with
-    | None ->
-      Hashtbl.add map x [args]
-    | Some l ->
-      Hashtbl.replace map x (args::l)
-  in
   let rec go phi = match phi with
     | App (phi1, phi2) -> begin
       let rec go_ acc phi = match phi with
@@ -26,14 +19,14 @@ let get_occurrences hes =
       let args, p = go_ [] phi in
       match p with
       | Var x when Id.is_pred_name x.name -> (
-        add_map x args;
+        Hashtbl.add map x args;
         List.iter go args
       )
       | _ ->
         (go phi1; go phi2)
     end
     | Var x when Id.is_pred_name x.name ->
-      add_map x []
+      Hashtbl.add map x []
     | Var _ | Arith _ | Pred _ | Bool _ -> ()
     | And (p1, p2) | Or (p1, p2) ->
         (go p1; go p2)
@@ -46,11 +39,8 @@ let get_occurrences hes =
     List.map
       (fun {var; _} ->
         let l =
-          match Hashtbl.find_opt map var with
-          | Some l -> 
-            Hflmc2_util.remove_duplicates (=) l
-          | None -> []
-        in
+          Hashtbl.find_all map var
+          |> Hflmc2_util.remove_duplicates (=) in
         (var, l)
       )
       rules in
@@ -181,11 +171,11 @@ let get_constant_substitution occurrences parameters =
                       match a with
                       | Some (Var _) -> None
                       | Some t -> Some t
-                      | None -> None)
+                      | None -> assert false)
                     froms in
                 match froms with
                 | [x] -> Some x
-                | [] -> assert false
+                | [] -> None
                 | _ -> None
               end
             end

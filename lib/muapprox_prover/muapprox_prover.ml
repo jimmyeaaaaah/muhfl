@@ -709,7 +709,7 @@ let elim_mu_exists solve_options (hes : 'a Hflz.hes) name =
   let t_count = ref 0 in
   
   let add_arguments hes =
-    Manipulate.Add_arguments_infer_partial_application.infer solve_options.with_partial_analysis solve_options.with_usage_analysis hes add_arg_coe1 add_arg_coe2 solve_options.no_temp_files
+    Manipulate.Add_arguments_infer_partial_application.infer solve_options.with_partial_analysis solve_options.with_usage_analysis hes add_arg_coe1 add_arg_coe2 solve_options.no_temp_files (lexico_pair_number > 1)
   in
   
   if no_elim then begin
@@ -942,7 +942,7 @@ let rec mu_elim_solver ?(was_weak_subtype_used=false) ?(cached_formula=None) ite
             ({ debug_context_ with backend_solver = Some "hoice"; exists_assignment = Some exists_assignment })
             nu_only_hes
             false
-            false
+            (if solve_options.only_remove_disjunctions then (* do not solve echc *) true else false)
             will_try_weak_subtype
             false;
           solve_onlynu_onlyforall
@@ -953,7 +953,7 @@ let rec mu_elim_solver ?(was_weak_subtype_used=false) ?(cached_formula=None) ite
             true (* if the formula is intractable in katsura-solver, stop either of the two solving processes to save computational resources *)
             will_try_weak_subtype
             false
-        ] @ (if solve_options.remove_disjunctions then [
+        ] @ (if solve_options.remove_disjunctions || solve_options.only_remove_disjunctions then [
           solve_onlynu_onlyforall
             { solve_options with backend_solver = Some "hoice" }
             ({ debug_context_ with backend_solver = Some "hoice"; exists_assignment = Some exists_assignment; remove_disjunctions = solve_options.remove_disjunctions })
@@ -964,7 +964,8 @@ let rec mu_elim_solver ?(was_weak_subtype_used=false) ?(cached_formula=None) ite
             true
           >>| (fun (s, d) ->
             match s with
-            | Status.Unknown -> Status.Fail, d
+            | Status.Unknown -> 
+              if solve_options.only_remove_disjunctions then (s, d) else Status.Fail, d
             | _ -> (s, d)
           );
           solve_onlynu_onlyforall
@@ -977,7 +978,8 @@ let rec mu_elim_solver ?(was_weak_subtype_used=false) ?(cached_formula=None) ite
             true
           >>| (fun (s, d) ->
             match s with
-            | Status.Unknown -> Status.Fail, d
+            | Status.Unknown ->
+              if solve_options.only_remove_disjunctions then (s, d) else Status.Fail, d
             | _ -> (s, d)
           )
         ] else [])

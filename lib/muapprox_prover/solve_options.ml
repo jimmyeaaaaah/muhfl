@@ -44,6 +44,7 @@ type options =
     try_weak_subtype: bool;
     backend_options: string;
     remove_disjunctions: bool;
+    only_remove_disjunctions: bool;
   }
 let get_solver solver_name = 
   match solver_name with

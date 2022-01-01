@@ -70,7 +70,7 @@ let assign_flags (rules : ptype2 thes_rule list) : ptype2 thes_rule_in_out list 
     )
     rules
 
-let get_global_env {var_in_out; body; _} outer_mu_funcs global_env =
+let get_global_env {var_in_out; body; _} outer_mu_funcs global_env do_not_use_inner_ty =
   let lookup v env =
     List.find (fun (id, _) -> Id.eq id v) env |> snd in
   let env_has v env =
@@ -89,10 +89,13 @@ let get_global_env {var_in_out; body; _} outer_mu_funcs global_env =
     let new_pvars =
       List.filter (fun pvar -> not @@ env_has pvar current_outer_pvars) arg_pvars in
     (* var_in_outと、追加するpredicateが一致しないことがある。しかし、どちらにせよその引数として渡されている値は最小不動点の中で使う可能性があるので、単にタグをTにすればよい *)
-    let (pvar_e, tag) = List.find (fun (v, _) -> Id.eq v pvar) global_env in
-    if new_pvars = [] then
-      {pvar with ty=(pvar_e.ty.T.inner_ty, tag)}
-    else
+    let (pvar_e, tag, fix) = List.find (fun (v, _, _) -> Id.eq v pvar) global_env in
+    if new_pvars = [] then begin
+      if do_not_use_inner_ty && (fix = T.Least) then
+        {pvar with ty=(pvar_e.ty.T.outer_ty, tag)}
+      else
+        {pvar with ty=(pvar_e.ty.T.inner_ty, tag)}
+    end else
       {pvar with ty=(pvar_e.ty.outer_ty, tag)}
   )
   |> Env.create
@@ -100,6 +103,7 @@ let get_global_env {var_in_out; body; _} outer_mu_funcs global_env =
 let generate_flag_constraints
     (rules : ptype2 thes_rule_in_out list)
     (outer_mu_funcs : ('a Id.t * 'a Id.t list) list)
+    (do_not_use_inner_ty : bool)
     : T.use_flag_constraint list =
   let filter_env env fvs =
     List.fold_left
@@ -182,11 +186,11 @@ let generate_flag_constraints
     | Pred _ -> (TBool, [])
   in
   let global_env =
-    List.map (fun {var_in_out; _} -> (var_in_out, T.EFVar (Id.gen ()))) rules in
+    List.map (fun {var_in_out; fix; _} -> (var_in_out, T.EFVar (Id.gen ()), fix)) rules in
   List.map
     (fun ({ var_in_out; body; fix=_fix } as rule) ->
       let global_env =
-        get_global_env rule outer_mu_funcs global_env
+        get_global_env rule outer_mu_funcs global_env do_not_use_inner_ty
       in
       let ty, flag_constraints = gen global_env body in
       (generate_type_equal_constraint ty var_in_out.ty.inner_ty) @ flag_constraints
@@ -285,9 +289,11 @@ let set_tag_in_undetermined_tags rules to_set_tag =
 
 let infer_thflz_type
     (rules : ptype2 thes_rule list)
-    (outer_mu_funcs : ('a Id.t * 'a Id.t list) list): ptype2 thes_rule_in_out list =
+    (outer_mu_funcs : ('a Id.t * 'a Id.t list) list)
+    (do_not_use_inner_ty : bool)
+    : ptype2 thes_rule_in_out list =
   let rules = assign_flags rules in
-  let flag_constraints = generate_flag_constraints rules outer_mu_funcs in
+  let flag_constraints = generate_flag_constraints rules outer_mu_funcs do_not_use_inner_ty in
   let flag_substitution = Add_arguments_unify_flags.unify_flags flag_constraints in
   let rules = subst_flags_program rules flag_substitution in
   let rules = set_tag_in_undetermined_tags rules T.TNotUse in
