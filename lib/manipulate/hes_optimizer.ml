@@ -428,6 +428,7 @@ let rec inline_bottom hes =
 (* (∀x. (    p(x) /\ phi1) \/ (not p(x) /\ phi2)) <=> (phi1 /\ phi2) *)
 let simplify_non_deterministic_branch_sub phi =
   let get_both_branch x p11 p12 p21 p22 =
+    (* In order to correctly optimize, pred p must satisfy ∃x.p(x)=∃x.¬p(x)=True. As under-approximation, we target primitive predicates without any logical connectives *)
     let pred1, phi1 =
       match p11 with
       | Hflz.Pred _ -> p11, p12

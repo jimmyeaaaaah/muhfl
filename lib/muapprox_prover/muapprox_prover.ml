@@ -897,7 +897,7 @@ let merge_debug_contexts cs_ =
   | [] -> assert false
 
 (* これ以降、本プログラム側での近似が入る *)
-let rec mu_elim_solver ?(was_weak_subtype_used=false) ?(cached_formula=None) iter_count (solve_options : Solve_options.options) hes mode_name iter_count_offset =
+let rec mu_elim_solver ?(cached_formula=None) iter_count (solve_options : Solve_options.options) hes mode_name iter_count_offset =
   Hflz_mani.simplify_bound := solve_options.simplify_bound;
   let nu_only_heses =
     match cached_formula with
@@ -906,7 +906,6 @@ let rec mu_elim_solver ?(was_weak_subtype_used=false) ?(cached_formula=None) ite
       (* |> (if solve_options.remove_disjunctions then List.map (fun (hes, a, b) -> Manipulate.Remove_disjunctions.convert hes, a, b) else (fun a -> a)) *)
     | Some p -> p in
   let approx_param = solve_options.approx_parameter in
-  let will_try_weak_subtype = solve_options.try_weak_subtype && not was_weak_subtype_used in
   let debug_context_ = {
     mode = mode_name;
     iter_count = iter_count;
@@ -923,7 +922,7 @@ let rec mu_elim_solver ?(was_weak_subtype_used=false) ?(cached_formula=None) ite
     t_count = -1;
     s_count = -1;
     elapsed_all = -1.0;
-    will_try_weak_subtype = will_try_weak_subtype;
+    will_try_weak_subtype = solve_options.try_weak_subtype;
     remove_disjunctions = false;
   } in
   (* e.g. solvers = [(* an instantiation of variables quantified by exists, e.g. x1 = 0 *)[solve with hoice, solve with z3]; (* x1 = 1*)[solve with hoice, solve with z3]]
@@ -943,7 +942,7 @@ let rec mu_elim_solver ?(was_weak_subtype_used=false) ?(cached_formula=None) ite
             nu_only_hes
             false
             (if solve_options.only_remove_disjunctions then (* do not solve echc *) true else false)
-            will_try_weak_subtype
+            false
             false;
           solve_onlynu_onlyforall
             { solve_options with backend_solver = Some "z3" }
@@ -951,9 +950,38 @@ let rec mu_elim_solver ?(was_weak_subtype_used=false) ?(cached_formula=None) ite
             nu_only_hes
             false
             true (* if the formula is intractable in katsura-solver, stop either of the two solving processes to save computational resources *)
-            will_try_weak_subtype
             false
-        ] @ (if solve_options.remove_disjunctions || solve_options.only_remove_disjunctions then [
+            false
+        ]
+        @ (if solve_options.try_weak_subtype then [
+          solve_onlynu_onlyforall
+            { solve_options with backend_solver = Some "hoice" }
+            ({ debug_context_ with backend_solver = Some "hoice"; exists_assignment = Some exists_assignment })
+            nu_only_hes
+            false
+            true
+            true
+            false
+          >>| (fun (s, d) ->
+            match s with
+            | Status.Unknown -> Status.Fail, d
+            | _ -> (s, d)
+          );
+          solve_onlynu_onlyforall
+            { solve_options with backend_solver = Some "z3" }
+            ({ debug_context_ with backend_solver = Some "z3"; exists_assignment = Some exists_assignment })
+            nu_only_hes
+            false
+            true
+            true
+            false
+          >>| (fun (s, d) ->
+            match s with
+            | Status.Unknown -> Status.Fail, d
+            | _ -> (s, d)
+          )
+        ] else [])
+        @ (if solve_options.remove_disjunctions || solve_options.only_remove_disjunctions then [
           solve_onlynu_onlyforall
             { solve_options with backend_solver = Some "hoice" }
             ({ debug_context_ with backend_solver = Some "hoice"; exists_assignment = Some exists_assignment; remove_disjunctions = solve_options.remove_disjunctions })
@@ -1036,13 +1064,9 @@ let rec mu_elim_solver ?(was_weak_subtype_used=false) ?(cached_formula=None) ite
         if !has_solved then
           return (Status.Unknown, debug_contexts)
         else begin
-          if will_try_weak_subtype then begin
-            mu_elim_solver ~was_weak_subtype_used:true ~cached_formula:(Some nu_only_heses) iter_count solve_options hes mode_name iter_count_offset
-          end else begin
-            let approx_param = get_next_approx_parameter ~param:approx_param ~iter_count:(iter_count + iter_count_offset) solve_options.add_arguments in
-            let solve_options = { solve_options with approx_parameter = approx_param } in
-            mu_elim_solver (iter_count + 1) solve_options hes mode_name iter_count_offset
-          end
+          let approx_param = get_next_approx_parameter ~param:approx_param ~iter_count:(iter_count + iter_count_offset) solve_options.add_arguments in
+          let solve_options = { solve_options with approx_parameter = approx_param } in
+          mu_elim_solver (iter_count + 1) solve_options hes mode_name iter_count_offset
         end
       in
       match result with

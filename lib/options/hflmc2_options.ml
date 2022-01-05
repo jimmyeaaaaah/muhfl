@@ -130,15 +130,19 @@ type params =
   ; no_temp_files : bool [@default false]
   
   ; try_weak_subtype : bool [@default false]
+  (** Solve reduce nu-HFL(Z) forumla using the weak subtype by Burn et. al. **)
+  
+  ; remove_disjunctions : bool [@default false]
+  (** If an input forumla is reduced to an intractable nu-HFL(Z) forumla, solve a formula translated to remove disjunctions (in parallel with solving the original intractable nu-HFL(Z)) **)
+  
+  ; only_remove_disjunctions : bool [@default false]
+  (** Similar to remove_disjunctions, but do not solve the orignal formula in parallel **)
   
   ; backend_options : string [@default ""]
   (** Opitons for backend nu-HFL(Z) solvers *)
   
-  ; remove_disjunctions : bool [@default false]
-  
-  ; only_remove_disjunctions : bool [@default false]
-  
   ; formula_margin: int [@default 100]
+  (** Margin in output temporary formula for debug **)
   }
 [@@deriving cmdliner,show]
 
