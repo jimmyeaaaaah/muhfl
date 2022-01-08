@@ -1,0 +1,14 @@
+paper/fair_termination_ho/murase_intro.in
+paper/fair_termination_ho/murase_repeat.in
+paper/fair_termination_ho/hofmann-2.in
+paper/fair_termination_ho/koskinen-3-3.in
+paper/termination_ho/any_down.in
+paper/termination_ho/append.in
+paper/termination_ho/binomial.in
+paper/termination_ho/fibonacci.in
+paper/termination_ho/indirect.in
+paper/termination_ho/indirectHO.in
+paper/termination_ho/mult.in
+paper/termination_ho/nested_loop.in
+paper/termination_ho/sum.in
+paper/termination_ho/zip.in

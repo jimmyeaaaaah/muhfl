@@ -1,0 +1,18 @@
+%HES
+Sentry =v
+  ∃x171. 
+   ∃x176. 
+    x176 < x171
+    /\ (Rumble__q0__1 (x176 + 1) x171
+         (\r. 
+           x171 < r
+           /\ (Rumble__q0__1 (x171 + 1) r (\r2. false) \/ Rumble__q0__1 x171 r (\r2. false)))
+        \/ Rumble__q0__1 x176 x171
+            (\r. 
+              x171 < r
+              /\ (Rumble__q0__1 (x171 + 1) r (\r2. false) \/ Rumble__q0__1 x171 r (\r2. false))))
+    \/ x176 >= x171 /\ x171 < x176
+       /\ (Rumble__q0__1 (x171 + 1) x176 (\r2. false) \/ Rumble__q0__1 x171 x176 (\r2. false)).
+Rumble__q0__1 x y k__q0__1 =v
+  (x >= y \/ Rumble__q0__1 (x + 1) y k__q0__1 \/ Rumble__q0__1 x y k__q0__1)
+  /\ (x < y \/ k__q0__1 x).

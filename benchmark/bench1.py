@@ -7,6 +7,7 @@ import re
 import argparse
 import glob
 import sys
+import copy
 
 OUTPUT_FILE_NAME = "0bench_out_append.txt"
 
@@ -200,6 +201,17 @@ def get_data(file, result):
     data['post_prover'] = get('prover', 'post')
     data['post_disprover'] = get('disprover', 'post')
     
+    data['is_nu_hflz'] = False
+    
+    if len(data['pre_prover']) == 0 and len(data['pre_disprover']) == 0:
+        data['pre_prover'] = get('solver', 'pre')
+        data['pre_disprover'] = copy.deepcopy(data['pre_prover'])
+        
+        data['post_prover'] = get('solver', 'post')
+        data['post_disprover'] = copy.deepcopy(data['post_prover'])
+        
+        data['is_nu_hflz'] = True
+    
     data['post_merged_prover'] = get_post_merged('prover', data['pre_prover'][-1])
     data['post_merged_disprover'] = get_post_merged('disprover', data['pre_disprover'][-1])
     
@@ -308,12 +320,13 @@ def main():
             disprover_elapsed_all: .data.post_merged_disprover.elapsed_all,
             prover_will_try_weak_subtype: .data.post_prover[-1].will_try_weak_subtype,
             disprover_will_try_weak_subtype: .data.post_disprover[-1].will_try_weak_subtype,
+            is_nu_hflz: .data.is_nu_hflz
             }]
-            | .[] | "\\(.file)\t\\(.prove_iter_count)\t\\(.disprove_iter_count)\t\\(.prover_t_count)\t\\(.prover_s_count)\t\\(.disprover_t_count)\t\\(.disprover_s_count)\t\\(.prover_elapsed_all)\t\\(.disprover_elapsed_all)\t\\(.prover_will_try_weak_subtype)\t\\(.disprover_will_try_weak_subtype)"' 0bench_out_full.txt > """ + OUTPUT_FILE_NAME + "_iter_count.txt")
+            | .[] | "\\(.file)\t\\(.prove_iter_count)\t\\(.disprove_iter_count)\t\\(.prover_t_count)\t\\(.prover_s_count)\t\\(.disprover_t_count)\t\\(.disprover_s_count)\t\\(.prover_elapsed_all)\t\\(.disprover_elapsed_all)\t\\(.prover_will_try_weak_subtype)\t\\(.disprover_will_try_weak_subtype)\t\\(.is_nu_hflz)"' 0bench_out_full.txt > """ + OUTPUT_FILE_NAME + "_iter_count.txt")
     
     os.system("paste " + OUTPUT_FILE_NAME + '_table.txt' + ' ' + OUTPUT_FILE_NAME + "_iter_count.txt > " + OUTPUT_FILE_NAME + "_summary.txt")
     
-    # result,time,file,prove_iter_count,disprove_iter_count,prover_t_count,prover_s_count,disprover_t_count,disprover_s_count,prover_elapsed_all,disprover_elapsed_all,prover_will_try_weak_subtype,disprover_will_try_weak_subtype
+    # result,time,file,prove_iter_count,disprove_iter_count,prover_t_count,prover_s_count,disprover_t_count,disprover_s_count,prover_elapsed_all,disprover_elapsed_all,prover_will_try_weak_subtype,disprover_will_try_weak_subtype,is_nu_hflz
     print("time: " + os.path.join(os.getcwd(), OUTPUT_FILE_NAME + "_summary.txt"))
     print("list: " + os.path.join(os.getcwd(), lists_path))
     print("full: " + os.path.join(os.getcwd(), "0bench_out_full.txt"))
