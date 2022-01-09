@@ -1,5 +1,6 @@
 import os
 import time
+import getpass
 
 def get_physical_memory_size_in_gib():
     mem_bytes = os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES')
@@ -9,7 +10,7 @@ PROCESS_NAME = 'main.exe'
 THRESHOLD = 7.0 / get_physical_memory_size_in_gib() * 100
 
 def get_memory_usage(process_name):
-    command = "top -b -n 1 -o \"%MEM\" -w | grep " + process_name + " | head -n 1 | awk '{print $1, $10}' > _result.tmp"
+    command = "top -b -n 1 -u " + getpass.getuser() + " -o \"%MEM\" -w | grep " + process_name + " | head -n 1 | awk '{print $1, $10}' > _result.tmp"
     os.system(command)
     try:
         with open('_result.tmp', 'r') as f:
