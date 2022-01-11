@@ -24,16 +24,16 @@ paper/fair_termination/koskinen-3-1.in
 paper/fair_termination/koskinen-3-3.in
 paper/fair_termination/koskinen-4.in
 paper/fair_termination/lester.in
-# paper/fair_termination_ho/murase_closure.in
-paper/fair_termination_ho/murase_intro.in
-paper/fair_termination_ho/murase_repeat.in
-paper/fair_termination_ho/hofmann-2.in
-# paper/fair_termination_ho/koskinen-1.in
-# paper/fair_termination_ho/koskinen-2.in
-# paper/fair_termination_ho/koskinen-3-1.in
-paper/fair_termination_ho/koskinen-3-3.in
-# paper/fair_termination_ho/koskinen-4.in
-# paper/fair_termination_ho/lester.in
+# paper/fair_termination_ho/murase_closure_ho.in
+paper/fair_termination_ho/murase_intro_ho.in
+paper/fair_termination_ho/murase_repeat_ho.in
+paper/fair_termination_ho/hofmann-2_ho.in
+# paper/fair_termination_ho/koskinen-1_ho.in
+# paper/fair_termination_ho/koskinen-2_ho.in
+# paper/fair_termination_ho/koskinen-3-1_ho.in
+paper/fair_termination_ho/koskinen-3-3_ho.in
+# paper/fair_termination_ho/koskinen-4_ho.in
+# paper/fair_termination_ho/lester_ho.in
 paper/nonterm/fib_CPS_nonterm.in
 paper/nonterm/fixpoint_nonterm.in
 paper/nonterm/foldr_nonterm.in
@@ -64,37 +64,35 @@ paper/termination/toChurch.in
 paper/termination/up_down.in
 paper/termination/x_plus_2_n.in
 paper/termination/zip.in
-# paper/termination_ho/ackermann.in
-paper/termination_ho/any_down.in
-paper/termination_ho/append.in
-paper/termination_ho/binomial.in
-paper/termination_ho/fibonacci.in
-# paper/termination_ho/foldr.in
-paper/termination_ho/indirect.in
-paper/termination_ho/indirectHO.in
-# paper/termination_ho/indirectIntro.in
-# paper/termination_ho/loop2.in
-# paper/termination_ho/map.in
-# paper/termination_ho/mc91.in
-paper/termination_ho/mult.in
-paper/termination_ho/nested_loop.in
-# paper/termination_ho/partial.in
-###
-# paper/termination_ho/quicksort.in
-###
-paper/termination_ho/sum.in
-# paper/termination_ho/toChurch.in
-# paper/termination_ho/up_down.in
-# paper/termination_ho/x_plus_2_n.in
-paper/termination_ho/zip.in
+# paper/termination_ho/ackermann_ho.in
+paper/termination_ho/any_down_ho.in
+paper/termination_ho/append_ho.in
+paper/termination_ho/binomial_ho.in
+paper/termination_ho/fibonacci_ho.in
+# paper/termination_ho/foldr_ho.in
+paper/termination_ho/indirect_ho.in
+paper/termination_ho/indirectHO_ho.in
+# paper/termination_ho/indirectIntro_ho.in
+# paper/termination_ho/loop2_ho.in
+# paper/termination_ho/map_ho.in
+# paper/termination_ho/mc91_ho.in
+paper/termination_ho/mult_ho.in
+paper/termination_ho/nested_loop_ho.in
+# paper/termination_ho/partial_ho.in
+# paper/termination_ho/quicksort_ho.in
+paper/termination_ho/sum_ho.in
+# paper/termination_ho/toChurch_ho.in
+# paper/termination_ho/up_down_ho.in
+# paper/termination_ho/x_plus_2_n_ho.in
+paper/termination_ho/zip_ho.in
 
-prog2/hofmann-2.in
-prog2/koskinen-1-buggy_dual.in
-prog2/koskinen-1.in
-prog2/koskinen-2-buggy_dual.in
-prog2/koskinen-2.in
-prog2/koskinen-3-buggy-1_dual.in
-prog2/koskinen-3-buggy-2_dual.in
-prog2/koskinen-3.in
-prog2/koskinen-4.in
-prog2/lester.in
+prog2/hofmann-2_direct.in
+prog2/koskinen-1-buggy_direct.in
+prog2/koskinen-1_direct.in
+prog2/koskinen-2-buggy_direct.in
+prog2/koskinen-2_direct.in
+prog2/koskinen-3-buggy-1_direct.in
+prog2/koskinen-3-buggy-2_direct.in
+prog2/koskinen-3_direct.in
+prog2/koskinen-4_direct.in
+prog2/lester_direct.in

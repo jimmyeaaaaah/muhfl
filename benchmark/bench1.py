@@ -49,7 +49,7 @@ def prepare():
     with open(OUTPUT_FILE_NAME, 'w') as f:
         pass
 
-    BACKEND_SOLVER_CANDIDATE = ['muapprox_first_order', 'muapprox_katsura', 'muapprox_iwayama', 'muapprox_suzuki', 'muapprox_katsura_replacer', 'muapprox_mochi']
+    BACKEND_SOLVER_CANDIDATE = ['muapprox_first_order', 'muapprox_katsura', 'muapprox_iwayama', 'muapprox_suzuki', 'muapprox_katsura_replacer', 'muapprox_mochi', 'muapprox_katsura_no_options']
 
     parser = argparse.ArgumentParser(description='benchmarker.')
     parser.add_argument('backend_solver', metavar='backend_solver', type=str, 
@@ -88,7 +88,7 @@ def prepare():
         "add_args":   add_args,
     })
     
-    return
+    return benchmark
     
 def extract_result(text):
     try:
@@ -192,6 +192,7 @@ def get_data(file, result):
                     "t_count": res[0]["t_count"],
                     "s_count": res[0]["s_count"],
                     "elapsed_all": sum([c["elapsed_all"] for c in res]),
+                    "elapsed_all_string": ','.join([str(c["elapsed_all"]) for c in res]),
                 }
             
     data = {}
@@ -295,7 +296,7 @@ def main_sub():
         with open(OUTPUT_FILE_NAME + '_table.txt', 'w') as f:
             f.writelines(to_table(results))
     
-def main():
+def main(benchmark):
     try:
         main_sub()
         print("FINISHED")
@@ -318,19 +319,24 @@ def main():
             disprover_s_count: .data.pre_disprover[-1].s_count,
             prover_elapsed_all: .data.post_merged_prover.elapsed_all,
             disprover_elapsed_all: .data.post_merged_disprover.elapsed_all,
+            prover_elapsed_all_string: .data.post_merged_prover.elapsed_all_string,
+            disprover_elapsed_all_string: .data.post_merged_disprover.elapsed_all_string,
             prover_will_try_weak_subtype: .data.post_prover[-1].will_try_weak_subtype,
             disprover_will_try_weak_subtype: .data.post_disprover[-1].will_try_weak_subtype,
             is_nu_hflz: .data.is_nu_hflz
             }]
-            | .[] | "\\(.file)\t\\(.prove_iter_count)\t\\(.disprove_iter_count)\t\\(.prover_t_count)\t\\(.prover_s_count)\t\\(.disprover_t_count)\t\\(.disprover_s_count)\t\\(.prover_elapsed_all)\t\\(.disprover_elapsed_all)\t\\(.prover_will_try_weak_subtype)\t\\(.disprover_will_try_weak_subtype)\t\\(.is_nu_hflz)"' 0bench_out_full.txt > """ + OUTPUT_FILE_NAME + "_iter_count.txt")
+            | .[] | "\\(.file)\t\\(.prove_iter_count)\t\\(.disprove_iter_count)\t\\(.prover_t_count)\t\\(.prover_s_count)\t\\(.disprover_t_count)\t\\(.disprover_s_count)\t\\(.prover_elapsed_all)\t\\(.disprover_elapsed_all)\t\\(.prover_will_try_weak_subtype)\t\\(.disprover_will_try_weak_subtype)\t\\(.is_nu_hflz)\t\\(.prover_elapsed_all_string)\t\\(.disprover_elapsed_all_string)"' 0bench_out_full.txt > """ + OUTPUT_FILE_NAME + "_iter_count.txt")
     
     os.system("paste " + OUTPUT_FILE_NAME + '_table.txt' + ' ' + OUTPUT_FILE_NAME + "_iter_count.txt > " + OUTPUT_FILE_NAME + "_summary.txt")
     
-    # result,time,file,prove_iter_count,disprove_iter_count,prover_t_count,prover_s_count,disprover_t_count,disprover_s_count,prover_elapsed_all,disprover_elapsed_all,prover_will_try_weak_subtype,disprover_will_try_weak_subtype,is_nu_hflz
+    # result,time,file,prove_iter_count,disprove_iter_count,prover_t_count,prover_s_count,disprover_t_count,disprover_s_count,prover_elapsed_all,disprover_elapsed_all,prover_will_try_weak_subtype,disprover_will_try_weak_subtype,is_nu_hflz,prover_elapsed_all_string,disprover_elapsed_all_string
     print("time: " + os.path.join(os.getcwd(), OUTPUT_FILE_NAME + "_summary.txt"))
     print("list: " + os.path.join(os.getcwd(), lists_path))
     print("full: " + os.path.join(os.getcwd(), "0bench_out_full.txt"))
+    
+    os.chdir("..")
+    os.system("bash ho2.sh file_list/" + benchmark + ".txt 2> /dev/null")
 
-prepare()
+benchmark = prepare()
 
-main()
+main(benchmark)
