@@ -27,11 +27,16 @@ type debug_context = {
   pid: int;
   file: string;
   temp_file: string;
+  solved_by: string;
   backend_solver: string option;
   default_lexicographic_order: int;
   exists_assignment: (unit Hflmc2_syntax.Id.t * int) list option;
   t_count: int;
   s_count: int;
+  hflz_size: int;
+  hflz_inlined_size: int;
+  hflz_pred_num: int;
+  hflz_inlined_pred_num: int;
   elapsed_all: float;
   will_try_weak_subtype: bool;
   remove_disjunctions: bool;
@@ -59,6 +64,7 @@ let show_debug_context debug =
     ("t_count", soi debug.t_count);
     ("s_count", soi debug.s_count);
     ("elapsed_all", string_of_float debug.elapsed_all);
+    ("solved_by", debug.solved_by);
     ("temp_file", debug.temp_file);
     ("will_try_weak_subtype", string_of_bool debug.will_try_weak_subtype);
     ("remove_disjunctions", string_of_bool debug.remove_disjunctions);
@@ -71,9 +77,13 @@ let show_debug_contexts debugs =
     )
     debugs |>
   String.concat ", "
+
+type extra_status =
+  | ExStatusIntractable
+  | ExStatusTractable
   
 module type BackendSolver = sig
-  val run : options -> debug_context -> Hflmc2_syntax.Type.simple_ty Hflz.hes -> bool -> bool -> bool -> bool -> Status.t Deferred.t
+  val run : options -> debug_context -> Hflmc2_syntax.Type.simple_ty Hflz.hes -> bool -> bool -> bool -> bool -> (Status.t * extra_status option) Deferred.t
 end
 
 module FptProverRecLimitSolver : BackendSolver = struct
@@ -102,15 +112,15 @@ module FptProverRecLimitSolver : BackendSolver = struct
         let reg = Str.regexp "^Verification Result: \\([a-z]+\\)$" in
         try
           ignore @@ Str.search_forward reg stdout 0;
-          Status.of_string @@ Str.matched_group 1 stdout
+          Status.of_string @@ Str.matched_group 1 stdout, None
         with
         | Not_found ->
           log_string "Failure in parsing output";
-          Status.Fail
+          Status.Fail, None
       end
       | Error code -> begin
         log_string @@ "Error status (" ^ Unix_command.show_code (Error code) ^ ")";
-        Status.Fail
+        Status.Fail, None
       end
     )
 end
@@ -133,6 +143,11 @@ let output_post_merged_debug_info (dbg : debug_context) =
       ("iter_count", `Int dbg.iter_count);
       ("t_count", `Int dbg.t_count);
       ("s_count", `Int dbg.s_count);
+      ("hflz_size", `Int dbg.hflz_size);
+      ("hflz_inlined_size", `Int dbg.hflz_inlined_size);
+      ("hflz_pred_num", `Int dbg.hflz_pred_num);
+      ("hflz_inlined_pred_num", `Int dbg.hflz_inlined_pred_num);
+      ("solved_by", `String dbg.solved_by);
       ("elapsed_all", `Float dbg.elapsed_all)]) in
   output_json data (get_file_name "post_merged" dbg.file dbg.mode dbg.iter_count)
   
@@ -168,6 +183,10 @@ module SolverCommon = struct
         ("coe2", `Int dbg.coe2);
         ("t_count", `Int dbg.t_count);
         ("s_count", `Int dbg.s_count);
+        ("hflz_size", `Int dbg.hflz_size);
+        ("hflz_inlined_size", `Int dbg.hflz_inlined_size);
+        ("hflz_pred_num", `Int dbg.hflz_pred_num);
+        ("hflz_inlined_pred_num", `Int dbg.hflz_inlined_pred_num);
       ]) in
     output_json data (get_file_name "pre" dbg.file dbg.mode 0)
     
@@ -204,47 +223,47 @@ module SolverCommon = struct
   type solver_error_category = S_ParseError | S_TypeError | S_OtherError
   
   let parse_results_inner (exit_status, stdout, stderr) debug_context elapsed no_temp_files status_parser =
-    let res, tmp_res, log_message, stopped_when_intractable = 
+    let res, tmp_res, log_message, extra_status = 
       match exit_status with 
       | Ok () -> begin
-        let status, stopped_when_intractable = status_parser stdout in
+        let status, extra_status = status_parser stdout in
         status, (
         match status with
         | Status.Valid -> TValid
         | Invalid -> TInvalid
         | _ -> TUnknown),
-        "Parsed status: " ^ Status.string_of status ^ " " ^ (show_debug_context debug_context), stopped_when_intractable
+        "Parsed status: " ^ Status.string_of status ^ " " ^ (show_debug_context debug_context), extra_status
       end
       | Error (`Exit_non_zero 2) -> begin
         Status.Fail, TTerminated,
-        "Error code 2 " ^ (show_debug_context debug_context), false
+        "Error code 2 " ^ (show_debug_context debug_context), None
       end
       | Error (`Exit_non_zero 127) -> begin
         Status.Fail, TTerminated,
-        "Command not found " ^ (show_debug_context debug_context), false
+        "Command not found " ^ (show_debug_context debug_context), None
       end
       | Error (`Exit_non_zero 143) -> begin
         Status.Unknown, TTerminated,
-        "SIGTERMed " ^ (show_debug_context debug_context), false
+        "SIGTERMed " ^ (show_debug_context debug_context), None
       end
       | Error (`Exit_non_zero 128) -> begin
         (* SIGTERMed. (why 128?) *)
         Status.Unknown, TTerminated,
-        "SIGTERMed (128) " ^ (show_debug_context debug_context), false
+        "SIGTERMed (128) " ^ (show_debug_context debug_context), None
       end
       | Error (`Exit_non_zero 124) -> begin
         Status.Unknown, TUnknown,
-        "Timeout " ^ (show_debug_context debug_context), false
+        "Timeout " ^ (show_debug_context debug_context), None
       end
       | Error code -> begin
         Status.Unknown, TError,
-        "Error status (" ^ Unix_command.show_code (Error code) ^ ")", false
+        "Error status (" ^ Unix_command.show_code (Error code) ^ ")", None
       end
     in
     if not no_temp_files then output_post_debug_info tmp_res elapsed stdout stderr debug_context;
-    if not stopped_when_intractable then
+    if extra_status = None then
       message_string ~header:"Result" @@ Status.string_of res ^ " / " ^ log_message;
-    res
+    res, extra_status
   
   let run_command_with_timeout ?env timeout command mode =
     unix_system ?env timeout command mode
@@ -287,12 +306,12 @@ module MochiSolver : BackendSolver = struct
       try
         ignore @@ Str.search_forward reg stdout 0;
         match Str.matched_group 1 stdout with
-        | "Safe!" -> Valid, false
-        | "Unsafe!" -> Invalid, false
+        | "Safe!" -> Valid, None
+        | "Unsafe!" -> Invalid, None
         | _ -> assert false
       with
       | Not_found ->
-        Status.Fail, false
+        Status.Fail, None
     )
     
   let run solve_options (debug_context: debug_context) hes _ _ _ _ =
@@ -403,21 +422,33 @@ module KatsuraSolver : BackendSolver = struct
       let reg = Str.regexp "^Verification Result:\n\\( \\)*\\([a-zA-Z]+\\)\nProfiling:$" in
       try
         ignore @@ Str.search_forward reg stdout 0;
-        Status.of_string @@ Str.matched_group 2 stdout, false
+        let status = Status.of_string @@ Str.matched_group 2 stdout in
+        let ex =
+          try
+            let reg = Str.regexp "^Tractability: \\([a-z]+\\)$" in
+            ignore @@ Str.search_forward reg stdout 0;
+            match Str.matched_group 1 stdout with
+            | "tractable" -> Some ExStatusTractable
+            | "intractable" -> Some ExStatusIntractable
+            | _ -> None
+          with
+          | Not_found -> None
+        in
+        status, ex
       with
       | Not_found -> begin
         let reg = Str.regexp "^intractable$" in
         try
           ignore @@ Str.search_forward reg stdout 0;
           message_string ~header:"Result" @@ "stop becasuse intractable (" ^ (show_debug_context debug_context) ^ ")";
-          Status.Fail, true
+          Status.Fail, Some ExStatusIntractable
         with
         | Not_found -> begin
           let reg = Str.regexp "^tractable$" in
           try
             ignore @@ Str.search_forward reg stdout 0;
             message_string ~header:"Result" @@ "stop becasuse tractable (" ^ (show_debug_context debug_context) ^ ")";
-            Status.Fail, true
+            Status.Fail, Some ExStatusTractable
           with Not_found -> failwith @@ "not matched"
         end
       end
@@ -453,7 +484,7 @@ module KatsuraSolver : BackendSolver = struct
           | _ ->
             try
               parse_results (status_code, stdout, stderr) debug_context elapsed solve_options.no_temp_files
-            with _ -> Status.Unknown)
+            with _ -> Status.Unknown, None)
     )
 end
 
@@ -486,7 +517,7 @@ module IwayamaSolver : BackendSolver = struct
       let reg = Str.regexp "^Verification Result:\n\\( \\)*\\([a-zA-Z]+\\)\nLoop Count:$" in
       try
         ignore @@ Str.search_forward reg stdout 0;
-        Status.of_string @@ Str.matched_group 2 stdout, false
+        Status.of_string @@ Str.matched_group 2 stdout, None
       with
         | Not_found -> failwith @@ "not matched"
     )
@@ -499,7 +530,7 @@ module IwayamaSolver : BackendSolver = struct
     >>| (fun (status_code, elapsed, stdout, stderr) ->
         try
           parse_results (status_code, stdout, stderr) debug_context elapsed solve_options.no_temp_files
-          with _ -> Status.Unknown)
+          with _ -> Status.Unknown, None)
 end
 
 module SuzukiSolver : BackendSolver = struct
@@ -538,7 +569,7 @@ module SuzukiSolver : BackendSolver = struct
           | "Sat" -> "valid"
           | "UnSat" -> "invalid"
           | _ -> failwith @@ "Illegal status string1 (" ^ s ^ ")"
-        ), false
+        ), None
       with
         | Not_found -> failwith @@ "not matched"
     )
@@ -551,7 +582,7 @@ module SuzukiSolver : BackendSolver = struct
     >>| (fun (status_code, elapsed, stdout, stderr) ->
         try
           parse_results (status_code, stdout, stderr) debug_context elapsed solve_options.no_temp_files
-          with _ -> Status.Unknown)
+          with _ -> Status.Unknown, None)
 end
 
 let rec is_first_order_function_type (ty : Hflmc2_syntax.Type.simple_ty) =
@@ -697,6 +728,15 @@ let count_occuring (*id_type_map:(unit Hflmc2_syntax.Id.t, Manipulate.Hflz_util.
       go body
     )
   |> List.fold_left (fun acc c -> acc + c) 0
+
+let get_hflz_info hes =
+  let inlined_hes = Manipulate.Hes_optimizer.InlineExpansion.optimize hes in
+  (
+    List.length (snd hes),
+    List.length (snd @@ inlined_hes),
+    Manipulate.Hflz_util.get_hflz_size hes,
+    Manipulate.Hflz_util.get_hflz_size inlined_hes
+  )
   
 let elim_mu_exists solve_options (hes : 'a Hflz.hes) name =
   let {no_elim;
@@ -718,7 +758,7 @@ let elim_mu_exists solve_options (hes : 'a Hflz.hes) name =
         let hes, _, _ = add_arguments hes in
         hes
       else hes in
-    [hes, [], (0, 0)]
+    [hes, [], (0, 0, get_hflz_info hes)]
   end else begin
     let hes, id_type_map, id_ho_map =
       if should_add_arguments then
@@ -783,7 +823,7 @@ let elim_mu_exists solve_options (hes : 'a Hflz.hes) name =
         else
           hes
       in
-      hes, acc, (!t_count, !s_count)
+      hes, acc, (!t_count, !s_count, get_hflz_info hes)
     ) heses
   end
 
@@ -887,8 +927,13 @@ let merge_debug_contexts cs_ =
       default_lexicographic_order = c.default_lexicographic_order;
       exists_assignment = None;
       temp_file = String.concat "," (List.map (fun c -> c.temp_file) cs_);
+      solved_by = String.concat "," (List.map (fun c -> c.solved_by) cs_);
       t_count = c.t_count;
       s_count = c.s_count;
+      hflz_size = c.hflz_size;
+      hflz_pred_num = c.hflz_pred_num;
+      hflz_inlined_size = c.hflz_inlined_size;
+      hflz_inlined_pred_num = c.hflz_inlined_pred_num;
       elapsed_all = c.elapsed_all;
       will_try_weak_subtype = c.will_try_weak_subtype;
       remove_disjunctions = c.remove_disjunctions;
@@ -919,8 +964,13 @@ let rec mu_elim_solver ?(cached_formula=None) iter_count (solve_options : Solve_
     default_lexicographic_order = approx_param.lexico_pair_number;
     exists_assignment = None;
     temp_file = "";
+    solved_by = "";
     t_count = -1;
     s_count = -1;
+    hflz_size = -1;
+    hflz_pred_num = -1;
+    hflz_inlined_size = -1;
+    hflz_inlined_pred_num = -1;
     elapsed_all = -1.0;
     will_try_weak_subtype = solve_options.try_weak_subtype;
     remove_disjunctions = false;
@@ -930,38 +980,46 @@ let rec mu_elim_solver ?(cached_formula=None) iter_count (solve_options : Solve_
     If either of hoice and z3 returned some result other than "fail," then the result of the current iteration is the result returned by the solvers.
     If one of instantiation of existential variables has returned "valid," then result of current iteration is "valid."
   *)
+  let pass_result = (fun ((s, _), d) -> (s, d)) in
   let (solvers: (Status.t * debug_context) Deferred.t list list) = 
     match solve_options.backend_solver with
     | None ->
-      List.map (fun (nu_only_hes, exists_assignment, (t_count, s_count)) ->
-        let debug_context_ = {debug_context_ with t_count; s_count} in
+      List.map (fun (nu_only_hes, exists_assignment, (t_count, s_count, (hflz_size, hflz_inlined_size, hflz_pred_num, hflz_inlined_pred_num))) ->
+        let debug_context_ = {debug_context_ with t_count; s_count; hflz_size; hflz_inlined_size; hflz_pred_num; hflz_inlined_pred_num} in
         [
           solve_onlynu_onlyforall
             { solve_options with backend_solver = Some "hoice" }
-            ({ debug_context_ with backend_solver = Some "hoice"; exists_assignment = Some exists_assignment })
+            ({ debug_context_ with backend_solver = Some "hoice"; solved_by = "hoice"; exists_assignment = Some exists_assignment })
             nu_only_hes
             false
             (if solve_options.only_remove_disjunctions then (* do not solve echc *) true else false)
             false
-            false;
+            false
+          >>| (fun ((s, ex), d) ->
+            match ex with
+            | Some ExStatusIntractable -> (s, {d with solved_by = "pcsat"})
+            | _ -> (s, d)
+          );
           solve_onlynu_onlyforall
             { solve_options with backend_solver = Some "z3" }
-            ({ debug_context_ with backend_solver = Some "z3"; exists_assignment = Some exists_assignment })
+            ({ debug_context_ with backend_solver = Some "z3"; solved_by = "z3"; exists_assignment = Some exists_assignment })
             nu_only_hes
             false
             true (* if the formula is intractable in katsura-solver, stop either of the two solving processes to save computational resources *)
             false
             false
+          >>| pass_result
         ]
         @ (if solve_options.try_weak_subtype then [
           solve_onlynu_onlyforall
             { solve_options with backend_solver = Some "hoice" }
-            ({ debug_context_ with backend_solver = Some "hoice"; exists_assignment = Some exists_assignment })
+            ({ debug_context_ with backend_solver = Some "hoice"; solved_by = "hoice_weak_subtype"; exists_assignment = Some exists_assignment })
             nu_only_hes
             false
             true
             true
             false
+          >>| pass_result
           >>| (fun (s, d) ->
             match s with
             | Status.Unknown -> Status.Fail, d
@@ -969,12 +1027,13 @@ let rec mu_elim_solver ?(cached_formula=None) iter_count (solve_options : Solve_
           );
           solve_onlynu_onlyforall
             { solve_options with backend_solver = Some "z3" }
-            ({ debug_context_ with backend_solver = Some "z3"; exists_assignment = Some exists_assignment })
+            ({ debug_context_ with backend_solver = Some "z3"; solved_by = "z3_weak_subtype"; exists_assignment = Some exists_assignment })
             nu_only_hes
             false
             true
             true
             false
+          >>| pass_result
           >>| (fun (s, d) ->
             match s with
             | Status.Unknown -> Status.Fail, d
@@ -984,12 +1043,13 @@ let rec mu_elim_solver ?(cached_formula=None) iter_count (solve_options : Solve_
         @ (if solve_options.remove_disjunctions || solve_options.only_remove_disjunctions then [
           solve_onlynu_onlyforall
             { solve_options with backend_solver = Some "hoice" }
-            ({ debug_context_ with backend_solver = Some "hoice"; exists_assignment = Some exists_assignment; remove_disjunctions = solve_options.remove_disjunctions })
+            ({ debug_context_ with backend_solver = Some "hoice"; solved_by = "hoice_rd"; exists_assignment = Some exists_assignment; remove_disjunctions = solve_options.remove_disjunctions })
             nu_only_hes
             false
             false
             false
             true
+          >>| pass_result
           >>| (fun (s, d) ->
             match s with
             | Status.Unknown -> 
@@ -998,12 +1058,13 @@ let rec mu_elim_solver ?(cached_formula=None) iter_count (solve_options : Solve_
           );
           solve_onlynu_onlyforall
             { solve_options with backend_solver = Some "z3" }
-            ({ debug_context_ with backend_solver = Some "z3"; exists_assignment = Some exists_assignment; remove_disjunctions = solve_options.remove_disjunctions })
+            ({ debug_context_ with backend_solver = Some "z3"; solved_by = "z3_rd"; exists_assignment = Some exists_assignment; remove_disjunctions = solve_options.remove_disjunctions })
             nu_only_hes
             false
             false
             false
             true
+          >>| pass_result
           >>| (fun (s, d) ->
             match s with
             | Status.Unknown ->
@@ -1013,7 +1074,7 @@ let rec mu_elim_solver ?(cached_formula=None) iter_count (solve_options : Solve_
         ] else [])
       ) nu_only_heses
     | Some _ ->
-      List.map (fun (nu_only_hes, _, (t_count, s_count)) -> [solve_onlynu_onlyforall solve_options {debug_context_ with t_count; s_count} nu_only_hes false false false false]) nu_only_heses in
+      List.map (fun (nu_only_hes, _, (t_count, s_count, (hflz_size, hflz_inlined_size, hflz_pred_num, hflz_inlined_pred_num))) -> [solve_onlynu_onlyforall solve_options {debug_context_ with t_count; s_count; hflz_size; hflz_inlined_size; hflz_pred_num; hflz_inlined_pred_num} nu_only_hes false false false false >>| pass_result]) nu_only_heses in
   let (is_valid : (Status.t * debug_context list) list Ivar.t) = Ivar.create () in
   let deferred_is_valid = Ivar.read is_valid in
   let (deferred_all : (Status.t * debug_context list) list Deferred.t) =

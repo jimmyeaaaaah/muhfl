@@ -340,3 +340,28 @@ let log_string
   Logs.set_reporter r;
   log_fun (fun m -> m ?header "%s" s);
   Logs.set_reporter reporter
+
+let get_hflz_size_sub phi =
+  let sum = List.fold_left (fun acc e -> acc + e) 0 in
+  let rec go phi = match phi with
+    | Var _ | Bool _ -> 1
+    | Or (p1, p2) -> go p1 + go p2 + 1
+    | And (p1, p2) -> go p1 + go p2 + 1
+    | Abs (_, p) -> go p + 1
+    | Forall (_, p) -> go p + 1
+    | Exists (_, p) -> go p + 1
+    | App (p1, p2) -> go p1 + go p2 + 1
+    | Arith a -> go_arith a
+    | Pred (_, as') -> (List.map go_arith as' |> sum) + 1
+  and go_arith a = match a with
+    | Var _ | Int _ -> 1
+    | Op (_, as') -> (List.map go_arith as' |> sum) + 1
+  in
+  go phi
+
+let get_hflz_size hes =
+  let sum = List.fold_left (fun acc e -> acc + e) 0 in
+  hes
+  |> Hflz.merge_entry_rule
+  |> List.map (fun {body;_} -> get_hflz_size_sub body)
+  |> sum

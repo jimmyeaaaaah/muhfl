@@ -172,7 +172,9 @@ def get_data(file, result):
                 
                 res.append(data[-1])
                 os.remove(file2)
-        
+            
+            res = sorted(res, key=lambda r: int(r["iter_count"]))
+            
             if res == []:
                 {}
             else:
@@ -189,10 +191,16 @@ def get_data(file, result):
                         print("WARN 3")
                 
                 return {
-                    "t_count": res[0]["t_count"],
-                    "s_count": res[0]["s_count"],
+                    "iter_count": '|'.join([str(c["iter_count"]) for c in res]),
+                    "t_count": '|'.join([str(c["t_count"]) for c in res]),
+                    "s_count": '|'.join([str(c["s_count"]) for c in res]),
+                    "solved_by": '|'.join([c["solved_by"] for c in res]),
                     "elapsed_all": sum([c["elapsed_all"] for c in res]),
-                    "elapsed_all_string": ','.join([str(c["elapsed_all"]) for c in res]),
+                    "hflz_size": '|'.join([str(c["hflz_size"]) for c in res]),
+                    "hflz_inlined_size": '|'.join([str(c["hflz_inlined_size"]) for c in res]),
+                    "hflz_pred_num": '|'.join([str(c["hflz_pred_num"]) for c in res]),
+                    "hflz_inlined_pred_num": '|'.join([str(c["hflz_inlined_pred_num"]) for c in res]),
+                    "elapsed_all_string": '|'.join([str(c["elapsed_all"]) for c in res]),
                 }
             
     data = {}
@@ -323,9 +331,29 @@ def main(benchmark):
             disprover_elapsed_all_string: .data.post_merged_disprover.elapsed_all_string,
             prover_will_try_weak_subtype: .data.post_prover[-1].will_try_weak_subtype,
             disprover_will_try_weak_subtype: .data.post_disprover[-1].will_try_weak_subtype,
-            is_nu_hflz: .data.is_nu_hflz
+            prover_hflz_size: .data.pre_prover[-1].hflz_size,
+            prover_hflz_inlined_size: .data.pre_prover[-1].hflz_inlined_size,
+            prover_hflz_pred_num: .data.pre_prover[-1].hflz_pred_num,
+            prover_hflz_inlined_pred_num: .data.pre_prover[-1].hflz_inlined_pred_num,
+            disprover_hflz_size: .data.pre_disprover[-1].hflz_size,
+            disprover_hflz_inlined_size: .data.pre_disprover[-1].hflz_inlined_size,
+            disprover_hflz_pred_num: .data.pre_disprover[-1].hflz_pred_num,
+            disprover_hflz_inlined_pred_num: .data.pre_disprover[-1].hflz_inlined_pred_num,
+            prover_solved_by: .data.post_merged_prover.solved_by,
+            disprover_solved_by: .data.post_merged_disprover.solved_by,
+            is_nu_hflz: .data.is_nu_hflz,
+            prover_iter_count: .data.post_merged_prover.iter_count,
+            prover_hflz_size: .data.post_merged_prover.hflz_size,
+            prover_hflz_inlined_size: .data.post_merged_prover.hflz_inlined_size,
+            prover_hflz_pred_num: .data.post_merged_prover.hflz_pred_num,
+            prover_hflz_inlined_pred_num: .data.post_merged_prover.hflz_inlined_pred_num,
+            disprover_iter_count: .data.post_merged_disprover.iter_count,
+            disprover_hflz_size: .data.post_merged_disprover.hflz_size,
+            disprover_hflz_inlined_size: .data.post_merged_disprover.hflz_inlined_size,
+            disprover_hflz_pred_num: .data.post_merged_disprover.hflz_pred_num,
+            disprover_hflz_inlined_pred_num: .data.post_merged_disprover.hflz_inlined_pred_num
             }]
-            | .[] | "\\(.file)\t\\(.prove_iter_count)\t\\(.disprove_iter_count)\t\\(.prover_t_count)\t\\(.prover_s_count)\t\\(.disprover_t_count)\t\\(.disprover_s_count)\t\\(.prover_elapsed_all)\t\\(.disprover_elapsed_all)\t\\(.prover_will_try_weak_subtype)\t\\(.disprover_will_try_weak_subtype)\t\\(.is_nu_hflz)\t\\(.prover_elapsed_all_string)\t\\(.disprover_elapsed_all_string)"' 0bench_out_full.txt > """ + OUTPUT_FILE_NAME + "_iter_count.txt")
+            | .[] | "\\(.file)\t\\(.prove_iter_count)\t\\(.disprove_iter_count)\t\\(.prover_t_count)\t\\(.prover_s_count)\t\\(.disprover_t_count)\t\\(.disprover_s_count)\t\\(.prover_elapsed_all)\t\\(.disprover_elapsed_all)\t\\(.prover_will_try_weak_subtype)\t\\(.disprover_will_try_weak_subtype)\t\\(.is_nu_hflz)\t\\(.prover_elapsed_all_string)\t\\(.disprover_elapsed_all_string)\t\\(.prover_hflz_size)\t\\(.prover_hflz_inlined_size)\t\\(.prover_hflz_pred_num)\t\\(.prover_hflz_inlined_pred_num)\t\\(.disprover_hflz_size)\t\\(.disprover_hflz_inlined_size)\t\\(.disprover_hflz_pred_num)\t\\(.disprover_hflz_inlined_pred_num)\t\\(.prover_solved_by)\t\\(.disprover_solved_by)\t\\(.prover_iter_count)\t\\(.prover_hflz_size)\t\\(.prover_hflz_inlined_size)\t\\(.prover_hflz_pred_num)\t\\(.prover_hflz_inlined_pred_num)\t\\(.disprover_iter_count)\t\\(.disprover_hflz_size)\t\\(.disprover_hflz_inlined_size)\t\\(.disprover_hflz_pred_num)\t\\(.disprover_hflz_inlined_pred_num)"' 0bench_out_full.txt > """ + OUTPUT_FILE_NAME + "_iter_count.txt")
     
     os.system("paste " + OUTPUT_FILE_NAME + '_table.txt' + ' ' + OUTPUT_FILE_NAME + "_iter_count.txt > " + OUTPUT_FILE_NAME + "_summary.txt")
     
