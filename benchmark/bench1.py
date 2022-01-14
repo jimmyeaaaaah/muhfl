@@ -351,9 +351,13 @@ def main(benchmark):
             disprover_hflz_size: .data.post_merged_disprover.hflz_size,
             disprover_hflz_inlined_size: .data.post_merged_disprover.hflz_inlined_size,
             disprover_hflz_pred_num: .data.post_merged_disprover.hflz_pred_num,
-            disprover_hflz_inlined_pred_num: .data.post_merged_disprover.hflz_inlined_pred_num
+            disprover_hflz_inlined_pred_num: .data.post_merged_disprover.hflz_inlined_pred_num,
+            m_prover_t_count: .data.post_merged_prover.t_count,
+            m_prover_s_count: .data.post_merged_prover.s_count,
+            m_disprover_t_count: .data.post_merged_disprover.t_count,
+            m_disprover_s_count: .data.post_merged_disprover.s_count
             }]
-            | .[] | "\\(.file)\t\\(.prove_iter_count)\t\\(.disprove_iter_count)\t\\(.prover_t_count)\t\\(.prover_s_count)\t\\(.disprover_t_count)\t\\(.disprover_s_count)\t\\(.prover_elapsed_all)\t\\(.disprover_elapsed_all)\t\\(.prover_will_try_weak_subtype)\t\\(.disprover_will_try_weak_subtype)\t\\(.is_nu_hflz)\t\\(.prover_elapsed_all_string)\t\\(.disprover_elapsed_all_string)\t\\(.prover_hflz_size)\t\\(.prover_hflz_inlined_size)\t\\(.prover_hflz_pred_num)\t\\(.prover_hflz_inlined_pred_num)\t\\(.disprover_hflz_size)\t\\(.disprover_hflz_inlined_size)\t\\(.disprover_hflz_pred_num)\t\\(.disprover_hflz_inlined_pred_num)\t\\(.prover_solved_by)\t\\(.disprover_solved_by)\t\\(.prover_iter_count)\t\\(.prover_hflz_size)\t\\(.prover_hflz_inlined_size)\t\\(.prover_hflz_pred_num)\t\\(.prover_hflz_inlined_pred_num)\t\\(.disprover_iter_count)\t\\(.disprover_hflz_size)\t\\(.disprover_hflz_inlined_size)\t\\(.disprover_hflz_pred_num)\t\\(.disprover_hflz_inlined_pred_num)"' 0bench_out_full.txt > """ + OUTPUT_FILE_NAME + "_iter_count.txt")
+            | .[] | "\\(.file)\t\\(.prove_iter_count)\t\\(.disprove_iter_count)\t\\(.prover_t_count)\t\\(.prover_s_count)\t\\(.disprover_t_count)\t\\(.disprover_s_count)\t\\(.prover_elapsed_all)\t\\(.disprover_elapsed_all)\t\\(.prover_will_try_weak_subtype)\t\\(.disprover_will_try_weak_subtype)\t\\(.is_nu_hflz)\t\\(.prover_elapsed_all_string)\t\\(.disprover_elapsed_all_string)\t\\(.prover_hflz_size)\t\\(.prover_hflz_inlined_size)\t\\(.prover_hflz_pred_num)\t\\(.prover_hflz_inlined_pred_num)\t\\(.disprover_hflz_size)\t\\(.disprover_hflz_inlined_size)\t\\(.disprover_hflz_pred_num)\t\\(.disprover_hflz_inlined_pred_num)\t\\(.prover_solved_by)\t\\(.disprover_solved_by)\t\\(.prover_iter_count)\t\\(.prover_hflz_size)\t\\(.prover_hflz_inlined_size)\t\\(.prover_hflz_pred_num)\t\\(.prover_hflz_inlined_pred_num)\t\\(.disprover_iter_count)\t\\(.disprover_hflz_size)\t\\(.disprover_hflz_inlined_size)\t\\(.disprover_hflz_pred_num)\t\\(.disprover_hflz_inlined_pred_num)\t\\(.m_prover_t_count)\t\\(.m_prover_s_count)\t\\(.m_disprover_t_count)\t\\(.m_disprover_s_count)"' 0bench_out_full.txt > """ + OUTPUT_FILE_NAME + "_iter_count.txt")
     
     os.system("paste " + OUTPUT_FILE_NAME + '_table.txt' + ' ' + OUTPUT_FILE_NAME + "_iter_count.txt > " + OUTPUT_FILE_NAME + "_summary.txt")
     
