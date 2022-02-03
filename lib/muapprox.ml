@@ -62,6 +62,21 @@ let parse_file_with_mufu file =
   |> (fun (e, rules) -> e, List.map ~f:Raw_hflz.rename_simple_ty_rule rules)
   |> Raw_hflz.rename_ty_body
   |> Hflz.desugar
+
+let add_top_level_foralls hes =
+  let entry, rules = hes in
+  let args, entry_body = Hflz.decompose_abs entry in
+  let entry =
+    List.fold_left
+      ~f:(fun acc arg ->
+        match arg.ty with
+        | Type.TyInt ->
+          Hflz.Forall (arg, acc)
+        | Type.TySigma _ -> failwith @@ "Error: the top-level argument \"" ^ Id.to_string arg ^ "\"'s type is not integer"
+      )
+      ~init:entry_body
+      args in
+  entry, rules
   
 let parse file =
   let psi =
@@ -71,6 +86,7 @@ let parse file =
       let psi, _ = Syntax.parse_file file in
       psi
     end in
+  let psi = add_top_level_foralls psi in
   Log.info begin fun m -> m ~header:"Input" "%a" Print.(hflz_hes simple_ty_) psi end;
   check_predicate_name psi;
   psi
