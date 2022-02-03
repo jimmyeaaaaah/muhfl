@@ -30,6 +30,8 @@ let mk_var x     = Var x
 let mk_op op as' = Op(op,as')
 let mk_forall var body = Forall(var, body)
 let mk_exists var body = Exists(var, body)
+let mk_and f1 f2 = And (f1, f2)
+let mk_or f1 f2  = Or  (f1, f2)
 
 let mk_ands = function
   | [] -> Bool true
@@ -41,6 +43,7 @@ let mk_ors = function
 
 let mk_not x = Not x
 
+let mk_preds pred bs = Pred(pred, bs)
 let mk_pred pred a1 a2 = Pred(pred, [a1;a2])
 
 let mk_app t1 t2 = App(t1,t2)

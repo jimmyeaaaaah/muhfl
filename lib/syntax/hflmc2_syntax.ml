@@ -165,6 +165,15 @@ let parse_string str =
   |> Parser.main
   |> Raw_hflz.to_typed
 
+let parse_file_to_raw file =
+  In_channel.with_file file ~f:begin fun ch ->
+    let lexbuf = Lexing.from_channel ch in
+    lexbuf.lex_start_p <- { lexbuf.lex_start_p with pos_fname = file };
+    lexbuf.lex_curr_p  <- { lexbuf.lex_curr_p  with pos_fname = file };
+    lexbuf
+    |> Parser.main
+  end
+  
 let parse_file file =
   In_channel.with_file file ~f:begin fun ch ->
     let lexbuf = Lexing.from_channel ch in

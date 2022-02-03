@@ -144,3 +144,4 @@ let convert_nu_hflz_to_program_with_exception = Muapprox_prover.Mochi_solver.con
 let remove_disjunctions = Manipulate.Remove_disjunctions.convert
 let constant_propagation =  Manipulate.Constant_propagation.run
 let simplify_if_condition = Manipulate.Simplify_if_condition.run
+let mufu_transform = MuFU_core.transform
