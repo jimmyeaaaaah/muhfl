@@ -48,12 +48,30 @@ let check_predicate_name (_, psi) =
     ~f:(fun {Hflz.var; _} ->
       if var.name ="Sentry" then failwith "You cannot use name \"Sentry\" except the first predicate."
     )
+
+let parse_file_with_mufu file =
+  let open Syntax in
+  (* make sure the input formula can be typed *)
+  ignore @@ Syntax.parse_file file;
+  let raw, env = parse_file_to_raw file in
+  Log.info begin fun m -> m ~header:"Input" "mufu transformation start" end;
+  let raw, s = MuFU_core.transform raw env in
+  Log.info begin fun m -> m ~header:"Input" "mufu transformation end" end;
+  Log.info begin fun m -> m ~header:"Input" "mufu transformation result: %s" s end;
+  Raw_hflz.Typing.to_typed raw
+  |> (fun (e, rules) -> e, List.map ~f:Raw_hflz.rename_simple_ty_rule rules)
+  |> Raw_hflz.rename_ty_body
+  |> Hflz.desugar
   
 let parse file =
-  let psi = 
-    let psi, _ = Syntax.parse_file file in
-    Log.info begin fun m -> m ~header:"Input" "%a" Print.(hflz_hes simple_ty_) psi end;
-    psi in
+  let psi =
+    if !Options.mufu
+    then parse_file_with_mufu file
+    else begin
+      let psi, _ = Syntax.parse_file file in
+      psi
+    end in
+  Log.info begin fun m -> m ~header:"Input" "%a" Print.(hflz_hes simple_ty_) psi end;
   check_predicate_name psi;
   psi
 

@@ -1,0 +1,4 @@
+%HES
+S =v ∀x. Even_d x \/ Odd_d x.
+Even_d x =v x != 0 /\ (x <= 0 \/ Even_d (x - 2)).
+Odd_d x =v x != 1 /\ (x <= 0 \/ Odd_d (x - 2)).

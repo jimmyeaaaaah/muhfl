@@ -40,6 +40,8 @@ let backend_options = ref (Obj.magic())
 let remove_disjunctions = ref (Obj.magic())
 let only_remove_disjunctions = ref (Obj.magic())
 let formula_margin = ref (Obj.magic())
+let mufu = ref (Obj.magic())
+
 (******************************************************************************)
 (* Parser                                                                     *)
 (******************************************************************************)
@@ -143,6 +145,9 @@ type params =
   
   ; formula_margin: int [@default 100]
   (** Margin in output temporary formula for debug **)
+  
+  ; mufu : bool [@default false]
+  (** Preprocess a formula with the mufu transformation *)
   }
 [@@deriving cmdliner,show]
 
@@ -181,6 +186,7 @@ let set_up_params params =
   set_ref remove_disjunctions         params.remove_disjunctions;
   set_ref only_remove_disjunctions    params.only_remove_disjunctions;
   set_ref formula_margin              params.formula_margin;
+  set_ref mufu                        params.mufu;
   params.input
 
 (******************************************************************************)
