@@ -1,0 +1,53 @@
+%HES
+Sentry =v
+  ∀x. 
+   ∀recF. 
+    ∀recF2. 
+     recF < 1 + 1 * x \/ recF < 1 + (-1) * x \/ recF < 1 \/ recF2 < 1 + 1 * x
+     \/ recF2 < 1 + (-1) * x
+     \/ recF2 < 1
+     \/ F recF recF2 x (\x2. x2 0 (\x3. true)).
+APP recAPP recAPP2 i v h u k_app =v
+  recAPP > 0 /\ recAPP2 > 0
+  /\ (i < 0
+      \/ APP (recAPP - 1) recAPP2 (i - 1) v h 0 k_app
+         \/ (∀recAPP186_2_n. 
+              recAPP186_2_n < 1 + 1 * 0 \/ recAPP186_2_n < 1 + (-1) * 0
+              \/ recAPP186_2_n < 1 + 1 * v
+              \/ recAPP186_2_n < 1 + (-1) * v
+              \/ recAPP186_2_n < 1 + 1 * (i - 1)
+              \/ recAPP186_2_n < 1 + (-1) * (i - 1)
+              \/ recAPP186_2_n < 1
+              \/ APP recAPP186_2_n (recAPP2 - 1) (i - 1) v h 0 k_app))
+     /\ (i >= 0 \/ h v (\x. x 0 k_app)).
+F recF recF2 x k_f =v
+  recF > 0 /\ recF2 > 0
+  /\ (x <= 0
+      \/ (∀x2. 
+           k_f
+            (\u. 
+              \k_app. 
+               ∀recAPP. 
+                ∀recAPP2. 
+                 recAPP < 1 + 1 * u \/ recAPP < 1 + (-1) * u \/ recAPP < 1 + 1 * (x - 1)
+                 \/ recAPP < 1 + (-1) * (x - 1)
+                 \/ recAPP < 1 + 1 * x2
+                 \/ recAPP < 1 + (-1) * x2
+                 \/ recAPP < 1
+                 \/ recAPP2 < 1 + 1 * u
+                 \/ recAPP2 < 1 + (-1) * u
+                 \/ recAPP2 < 1 + 1 * (x - 1)
+                 \/ recAPP2 < 1 + (-1) * (x - 1)
+                 \/ recAPP2 < 1 + 1 * x2
+                 \/ recAPP2 < 1 + (-1) * x2
+                 \/ recAPP2 < 1
+                 \/ APP recAPP recAPP2 x2 (x - 1)
+                     (\x3. 
+                       \k_f2. 
+                        F (recF - 1) recF2 x3 k_f2
+                        \/ (∀recF187_2_n. 
+                             recF187_2_n < 1 + 1 * x3 \/ recF187_2_n < 1 + (-1) * x3
+                             \/ recF187_2_n < 1
+                             \/ F recF187_2_n (recF2 - 1) x3 k_f2))
+                     u k_app)))
+     /\ (x > 0 \/ k_f (\u. \k_g. k_g 0)).

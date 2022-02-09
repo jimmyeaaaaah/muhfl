@@ -1,0 +1,110 @@
+%HES
+Sentry =v
+  ∀sssss. 
+   sssss < 1 * 1 + 1 \/ sssss < (-1) * 1 + 1 \/ sssss < 1
+   \/ (∀recXx__q. 
+        recXx__q < 8 + 1 * 0 \/ recXx__q < 8 + (-1) * 0 \/ recXx__q < 8 + 1 * 1
+        \/ recXx__q < 8 + (-1) * 1
+        \/ recXx__q < 8
+        \/ Xx__q recXx__q sssss 0 (\k__q_close. k__q_close 1) true true
+            (\k__q. k__q 0) (\k__q_close. k__q_close 0)).
+Loop___q_close recLoop___q_close flag i___q i___q2 i___q_close i___q_close2 n___q n___q2 n___q_close n___q_close2 y__q y__q2 y__q_close y__q_close2 =v
+  recLoop___q_close > 0
+  /\ i___q_close
+      (\i. 
+        n___q_close
+         (\n. 
+           (i > n
+            \/ (flag != 1
+                \/ Loop___q_close (recLoop___q_close - 1) flag (Succ__q i___q2)
+                    (Succ__q i___q2) (Succ__q_close i___q_close2)
+                    (Succ__q_close i___q_close2) n___q2 n___q2 n___q_close2
+                    n___q_close2 y__q2 y__q2 y__q_close2 y__q_close2)
+               /\ (flag = 1
+                   \/ Loop___q recLoop___q_close flag (Succ__q2 i___q)
+                       (Succ__q2 i___q) (Succ__q i___q2)
+                       (Succ__q_close i___q_close2) n___q n___q n___q2
+                       n___q_close2 y__q y__q y__q2 y__q_close2))
+           /\ (i <= n \/ y__q_close))).
+G128__q k__q =v k__q 1.
+G128__q_close k__q_close =v k__q_close 1.
+F129__q_close ttttt y__q y__q2 y__q_close n___q n___q2 n___q_close flag =v
+  (flag != 1
+   \/ (∀sssss. 
+        sssss < 1 * ttttt + 1 \/ sssss < (-1) * ttttt + 1 \/ sssss < 1
+        \/ (∀recLoop___q_close. 
+             recLoop___q_close < 8 + 1 * ttttt
+             \/ recLoop___q_close < 8 + (-1) * ttttt
+             \/ recLoop___q_close < 8 + 1 * flag
+             \/ recLoop___q_close < 8 + (-1) * flag
+             \/ recLoop___q_close < 8
+             \/ Loop___q_close recLoop___q_close flag G128__q G128__q
+                 G128__q_close G128__q_close n___q2 n___q2 n___q_close
+                 n___q_close y__q2 y__q2 y__q_close y__q_close)))
+  /\ (flag = 1
+      \/ (∀sssss. 
+           sssss < 1 * ttttt + 1 \/ sssss < (-1) * ttttt + 1
+           \/ sssss < 1 * 1 + 1
+           \/ sssss < (-1) * 1 + 1
+           \/ sssss < 1
+           \/ (∀recLoop___q_close. 
+                recLoop___q_close < 8 + 1 * ttttt
+                \/ recLoop___q_close < 8 + 1 * 1
+                \/ recLoop___q_close < 8 + (-1) * ttttt
+                \/ recLoop___q_close < 8 + (-1) * 1
+                \/ recLoop___q_close < 8 + 1 * flag
+                \/ recLoop___q_close < 8 + (-1) * flag
+                \/ recLoop___q_close < 8
+                \/ Loop___q recLoop___q_close flag (\k__q. k__q 1)
+                    (\k__q. k__q 1) G128__q G128__q_close n___q n___q n___q2
+                    n___q_close y__q y__q y__q2 y__q_close))).
+Succ__q n___q k__q =v n___q (Succ130__q k__q).
+Succ__q_close n___q_close k__q_close =v n___q_close (\n. k__q_close (n + 1)).
+Loop___q recLoop___q_close flag i___q i___q2 i___q3 i___q_close n___q n___q2 n___q3 n___q_close y__q y__q2 y__q3 y__q_close =v
+  i___q
+   (\i. 
+     n___q
+      (\n. 
+        (i > n
+         \/ (flag != 1
+             \/ Loop___q_close (recLoop___q_close - 1) flag (Succ__q i___q3)
+                 (Succ__q i___q3) (Succ__q_close i___q_close)
+                 (Succ__q_close i___q_close) n___q3 n___q3 n___q_close
+                 n___q_close y__q3 y__q3 y__q_close y__q_close)
+            /\ (flag = 1
+                \/ Loop___q recLoop___q_close flag (Succ__q2 i___q2)
+                    (Succ__q2 i___q2) (Succ__q i___q3)
+                    (Succ__q_close i___q_close) n___q2 n___q2 n___q3
+                    n___q_close y__q2 y__q2 y__q3 y__q_close))
+        /\ (i <= n \/ y__q))).
+F__q ttttt x__q y__q y__q_close n___q n___q_close =v
+  (∀sssss. 
+    sssss < 1 * ttttt + 1 \/ sssss < (-1) * ttttt + 1 \/ sssss < 1
+    \/ F__q sssss x__q y__q y__q_close (Succ__q n___q)
+        (Succ__q_close n___q_close))
+  /\ (∀sssss. 
+       sssss < 1 * ttttt + 1 \/ sssss < (-1) * ttttt + 1 \/ sssss < 1
+       \/ x__q
+           (F129__q_close sssss y__q y__q y__q_close n___q n___q n___q_close)).
+Succ__q2 n___q k__q =v n___q (Succ130__q k__q).
+F__q2 ttttt x__q y__q y__q_close n___q n___q_close =v
+  (∀sssss. 
+    sssss < 1 * ttttt + 1 \/ sssss < (-1) * ttttt + 1 \/ sssss < 1
+    \/ F__q sssss x__q y__q y__q_close (Succ__q n___q)
+        (Succ__q_close n___q_close))
+  /\ (∀sssss. 
+       sssss < 1 * ttttt + 1 \/ sssss < (-1) * ttttt + 1 \/ sssss < 1
+       \/ x__q
+           (F129__q_close sssss y__q y__q y__q_close n___q n___q n___q_close)).
+Succ130__q k__q n =v k__q (n + 1).
+Xx__q recXx__q ttttt flag s2__q t2__q t2__q_close n___q n___q_close =v
+  recXx__q > 0
+  /\ (flag != 1
+      \/ (∀sssss. 
+           sssss < 1 * ttttt + 1 \/ sssss < (-1) * ttttt + 1 \/ sssss < 1
+           \/ F__q2 sssss s2__q t2__q t2__q_close n___q n___q_close))
+     /\ (flag = 1
+         \/ (∀sssss. 
+              sssss < 1 * ttttt + 1 \/ sssss < (-1) * ttttt + 1 \/ sssss < 1
+              \/ Xx__q (recXx__q - 1) sssss 1 s2__q t2__q t2__q_close n___q
+                  n___q_close)).

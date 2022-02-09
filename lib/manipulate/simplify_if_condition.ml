@@ -10,7 +10,11 @@ module FormulaSimplification = struct
   module C = Simplify_bound.ConvertLib
 
   let trans_pred_ used_variables op a1 a2 =
-    ("(" ^ C.trans_pred op ^ " " ^ C.trans_arith used_variables a1 ^ " " ^ C.trans_arith used_variables a2 ^ ")")
+    match op with
+    | Formula.Neq ->
+      ("(not (" ^ C.trans_pred Formula.Eq ^ " " ^ C.trans_arith used_variables a1 ^ " " ^ C.trans_arith used_variables a2 ^ "))")
+    | _ ->
+      ("(" ^ C.trans_pred op ^ " " ^ C.trans_arith used_variables a1 ^ " " ^ C.trans_arith used_variables a2 ^ ")")
 
   let convert_to_smt2 (form : 'a t) =
     let used_variables = ref [] in

@@ -1,0 +1,53 @@
+%HES
+Sentry =v
+  ∀x. 
+   (x < 0
+    \/ (∀y. 
+         ∀sssss. 
+          sssss < 1 * x + 1 \/ sssss < (-1) * x + 1 \/ sssss < 1 * y + 1
+          \/ sssss < (-1) * y + 1
+          \/ sssss < 1
+          \/ (∀recXX. 
+               recXX < 8 + 1 * 0 \/ recXX < 8 + (-1) * 0 \/ recXX < 8 + 1 * x
+               \/ recXX < 8 + 1 * y
+               \/ recXX < 8 + (-1) * x
+               \/ recXX < 8 + (-1) * y
+               \/ recXX < 8
+               \/ XX recXX sssss 0 (\u. \k_main. k_main x)
+                   (\fx. 
+                     \k_succ. 
+                      fx 0 (\x2. k_succ (\u. \k_succ2. k_succ2 (x2 + 1))))
+                   (\u. \k_main. k_main y) (\x2. x2 0 (\x3. true)))))
+   /\ (x >= 0 \/ true).
+TOCHURCH recTOCHURCH fn f fx k_toChurch =v
+  recTOCHURCH > 0
+  /\ fn 0
+      (\x. 
+        (x != 0
+         \/ (1 != 1 \/ k_toChurch fx)
+            /\ (1 = 1
+                \/ fn 0
+                    (\x2. 
+                      TOCHURCH (recTOCHURCH - 1) (\u. \k_pred. k_pred (x2 - 1))
+                       f fx (\x3. f x3 k_toChurch))))
+        /\ (x = 0
+            \/ (0 != 1 \/ k_toChurch fx)
+               /\ (0 = 1
+                   \/ fn 0
+                       (\x2. 
+                         TOCHURCH (recTOCHURCH - 1)
+                          (\u. \k_pred. k_pred (x2 - 1)) f fx
+                          (\x3. f x3 k_toChurch))))).
+XX recXX ttttt flag fn f fx k_xx =v
+  recXX > 0
+  /\ (flag != 1
+      \/ (∀sssss. 
+           sssss < 1 * ttttt + 1 \/ sssss < (-1) * ttttt + 1 \/ sssss < 1
+           \/ (∀recTOCHURCH. 
+                recTOCHURCH < 8 + 1 * ttttt \/ recTOCHURCH < 8 + (-1) * ttttt
+                \/ recTOCHURCH < 8
+                \/ TOCHURCH recTOCHURCH fn f fx k_xx)))
+     /\ (flag = 1
+         \/ (∀sssss. 
+              sssss < 1 * ttttt + 1 \/ sssss < (-1) * ttttt + 1 \/ sssss < 1
+              \/ XX (recXX - 1) sssss 1 fn f fx k_xx)).

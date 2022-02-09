@@ -1,0 +1,37 @@
+/* valid in 95 sec with hoice */
+%HES
+Sentry =v
+  ∀m. 
+   ∀n. 
+    ∀recF.
+      recF < 1 + 2 * m \/ recF < 1 + (-2) * m \/ recF < 1 + 2 * n \/ recF < 1 + (-2) * n \/ recF < 1
+      \/ F recF m n (\u. \k_main. k_main m) (\u. \k_main. k_main n) (\x. true).
+
+CHECK f k_check =v f 0 (\x. (x <= 0 \/ k_check 1) /\ (x > 0 \/ k_check 0)).
+
+F recF _m _n fm fn k_f =v
+  recF > 0
+  /\ CHECK fm
+      (\bm. 
+        CHECK fn
+         (\bn. 
+           ∀r. 
+            (r <= 0 \/ bm != 1 \/ PRED fm (\x. F (recF - 1) (_m - 1) _n x fn k_f))
+            /\ (r > 0 /\ bm = 1
+                \/ (r > 0 \/ bn != 1 \/ PRED fn (\x. F (recF - 1) _m (_n - 1) fm x k_f))
+                   /\ (r <= 0 /\ bn = 1 \/ k_f 0)))).
+PRED fx k_pred =v fx 0 (\x. k_pred (\u. \k_pred2. k_pred2 (x - 1))).
+
+%ENV
+F : recF63:int ->
+     _m64:int ->
+      _n65:int ->
+       (t66:int -> (t67:int -> bool[-1 * t67 + _m64 = 0]) -> bool[recF63 >= 1]) ->
+        (t70:int ->
+          (t71:int ->
+            bool[-2 * t71 + 2 * recF63 + 2 * _m64 >= 2 /\ 2 * recF63 + 2 * _m64 >= 2
+                 /\ -2 * t71 + 2 * recF63 + -2 * _m64 >= 2
+                 /\ 2 * recF63 + _m64 * -2 >= 2]) ->
+           bool[recF63 >= 1]) ->
+         (t74:int -> bool[recF63 >= 1]) -> bool[recF63 >= 1].
+         

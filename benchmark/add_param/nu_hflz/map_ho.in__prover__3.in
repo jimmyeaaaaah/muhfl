@@ -1,0 +1,49 @@
+%HES
+Sentry =v
+  ∀l. 
+   (l < 0
+    \/ (∀sssss. 
+         sssss < 1 * l + 1 \/ sssss < (-1) * l + 1 \/ sssss < 1
+         \/ (∀recXX. 
+              recXX < 8 + 1 * 0 \/ recXX < 8 + (-1) * 0 \/ recXX < 8 + 1 * l
+              \/ recXX < 8 + (-1) * l
+              \/ recXX < 8
+              \/ XX recXX sssss 0 (\u. \k_main. k_main l) (\x. true))))
+   /\ (l >= 0 \/ true).
+MAP recMAP f fxs k_map =v
+  recMAP > 0
+  /\ fxs 0
+      (\x. 
+        (x != 0
+         \/ (1 != 1 \/ k_map 0)
+            /\ (1 = 1
+                \/ (∀m. 
+                     f m
+                      (\r. 
+                        fxs 0
+                         (\x2. 
+                           MAP (recMAP - 1) f (\u. \k_pred. k_pred (x2 - 1))
+                            (\r2. k_map (r + r2)))))))
+        /\ (x = 0
+            \/ (0 != 1 \/ k_map 0)
+               /\ (0 = 1
+                   \/ (∀m. 
+                        f m
+                         (\r. 
+                           fxs 0
+                            (\x2. 
+                              MAP (recMAP - 1) f (\u. \k_pred. k_pred (x2 - 1))
+                               (\r2. k_map (r + r2)))))))).
+XX recXX ttttt flag fl k_xx =v
+  recXX > 0
+  /\ (flag != 1
+      \/ (∀sssss. 
+           sssss < 1 * ttttt + 1 \/ sssss < (-1) * ttttt + 1 \/ sssss < 1
+           \/ (∀recMAP. 
+                recMAP < 8 + 1 * ttttt \/ recMAP < 8 + (-1) * ttttt
+                \/ recMAP < 8
+                \/ MAP recMAP (\x. \k_compose. k_compose (1 + (2 + x))) fl k_xx)))
+     /\ (flag = 1
+         \/ (∀sssss. 
+              sssss < 1 * ttttt + 1 \/ sssss < (-1) * ttttt + 1 \/ sssss < 1
+              \/ XX (recXX - 1) sssss 1 fl k_xx)).

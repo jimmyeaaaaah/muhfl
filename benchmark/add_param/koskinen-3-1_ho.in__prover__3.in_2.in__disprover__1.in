@@ -1,0 +1,267 @@
+%HES
+Sentry =v
+  ∀x. 
+   ∀sssss. 
+    sssss < 1 + 1 * 8 \/ sssss < 1 + (-1) * 8 \/ sssss < 1 + 1 * (8 + -1 * 0)
+    \/ sssss < 1 + (-1) * (8 + -1 * 0)
+    \/ sssss < 1 + 1 * (8 + 1 * 0)
+    \/ sssss < 1 + (-1) * (8 + 1 * 0)
+    \/ sssss < 1 + 1 * 1
+    \/ sssss < 1 + (-1) * 1
+    \/ sssss < 1
+    \/ x < 1 + 1 * 8
+    \/ x < 1 + (-1) * 8
+    \/ x < 1 + 1 * (8 + -1 * 0)
+    \/ x < 1 + (-1) * (8 + -1 * 0)
+    \/ x < 1 + 1 * (8 + 1 * 0)
+    \/ x < 1 + (-1) * (8 + 1 * 0)
+    \/ x < 1 + 1 * 1
+    \/ x < 1 + (-1) * 1
+    \/ x < 1
+    \/ Exists x sssss.
+Exists x sssss =v
+  (sssss >= 1 * x + 1 /\ sssss >= -1 * x + 1 /\ sssss >= 1
+   /\ (∀recXx__q. 
+        recXx__q < 1 + 1 * x \/ recXx__q < 1 + (-1) * x \/ recXx__q < 1 + 1 * sssss
+        \/ recXx__q < 1 + (-1) * sssss
+        \/ recXx__q < 1 + 1 * 8
+        \/ recXx__q < 1 + (-1) * 8
+        \/ recXx__q < 1 + 1 * (8 + -1 * x)
+        \/ recXx__q < 1 + (-1) * (8 + -1 * x)
+        \/ recXx__q < 1 + 1 * (8 + 1 * x)
+        \/ recXx__q < 1 + (-1) * (8 + 1 * x)
+        \/ recXx__q < 1 + 1 * (8 + -1 * 0)
+        \/ recXx__q < 1 + (-1) * (8 + -1 * 0)
+        \/ recXx__q < 1 + 1 * (8 + 1 * 0)
+        \/ recXx__q < 1 + (-1) * (8 + 1 * 0)
+        \/ recXx__q < 1
+        \/ Exists2 x sssss recXx__q)
+   \/ -sssss >= 1 * x + 1 /\ -sssss >= -1 * x + 1 /\ -sssss >= 1
+      /\ (∀recXx__q. 
+           recXx__q < 1 + 1 * x \/ recXx__q < 1 + (-1) * x \/ recXx__q < 1 + 1 * -sssss
+           \/ recXx__q < 1 + (-1) * -sssss
+           \/ recXx__q < 1 + 1 * 8
+           \/ recXx__q < 1 + (-1) * 8
+           \/ recXx__q < 1 + 1 * (8 + -1 * x)
+           \/ recXx__q < 1 + (-1) * (8 + -1 * x)
+           \/ recXx__q < 1 + 1 * (8 + 1 * x)
+           \/ recXx__q < 1 + (-1) * (8 + 1 * x)
+           \/ recXx__q < 1 + 1 * (8 + -1 * 0)
+           \/ recXx__q < 1 + (-1) * (8 + -1 * 0)
+           \/ recXx__q < 1 + 1 * (8 + 1 * 0)
+           \/ recXx__q < 1 + (-1) * (8 + 1 * 0)
+           \/ recXx__q < 1
+           \/ Exists3 x sssss recXx__q)
+   \/ sssss >= 1 * -x + 1 /\ sssss >= -1 * -x + 1 /\ sssss >= 1
+      /\ (∀recXx__q. 
+           recXx__q < 1 + 1 * -x \/ recXx__q < 1 + (-1) * -x \/ recXx__q < 1 + 1 * sssss
+           \/ recXx__q < 1 + (-1) * sssss
+           \/ recXx__q < 1 + 1 * 8
+           \/ recXx__q < 1 + (-1) * 8
+           \/ recXx__q < 1 + 1 * (8 + -1 * -x)
+           \/ recXx__q < 1 + (-1) * (8 + -1 * -x)
+           \/ recXx__q < 1 + 1 * (8 + 1 * -x)
+           \/ recXx__q < 1 + (-1) * (8 + 1 * -x)
+           \/ recXx__q < 1 + 1 * (8 + -1 * 0)
+           \/ recXx__q < 1 + (-1) * (8 + -1 * 0)
+           \/ recXx__q < 1 + 1 * (8 + 1 * 0)
+           \/ recXx__q < 1 + (-1) * (8 + 1 * 0)
+           \/ recXx__q < 1
+           \/ Exists4 x sssss recXx__q)
+   \/ -sssss >= 1 * -x + 1 /\ -sssss >= -1 * -x + 1 /\ -sssss >= 1
+      /\ (∀recXx__q. 
+           recXx__q < 1 + 1 * -x \/ recXx__q < 1 + (-1) * -x \/ recXx__q < 1 + 1 * -sssss
+           \/ recXx__q < 1 + (-1) * -sssss
+           \/ recXx__q < 1 + 1 * 8
+           \/ recXx__q < 1 + (-1) * 8
+           \/ recXx__q < 1 + 1 * (8 + -1 * -x)
+           \/ recXx__q < 1 + (-1) * (8 + -1 * -x)
+           \/ recXx__q < 1 + 1 * (8 + 1 * -x)
+           \/ recXx__q < 1 + (-1) * (8 + 1 * -x)
+           \/ recXx__q < 1 + 1 * (8 + -1 * 0)
+           \/ recXx__q < 1 + (-1) * (8 + -1 * 0)
+           \/ recXx__q < 1 + 1 * (8 + 1 * 0)
+           \/ recXx__q < 1 + (-1) * (8 + 1 * 0)
+           \/ recXx__q < 1
+           \/ Exists5 x sssss recXx__q)
+   \/ Exists (x - 1) sssss
+   \/ Exists x (sssss - 1))
+  /\ x >= 0 /\ sssss >= 0.
+Exists2 x sssss recXx__q =v
+  (recXx__q >= 8 + 1 * 0 /\ recXx__q >= 8 + -1 * 0 /\ recXx__q >= 8 + 1 * x
+   /\ recXx__q >= 8 + -1 * x
+   /\ recXx__q >= 8
+   /\ (∀uu. 
+        ∀recXx__q2. 
+         recXx__q2 < 1 + 1 * 0 \/ recXx__q2 < 1 + (-1) * 0 \/ recXx__q2 < 1 + 1 * sssss
+         \/ recXx__q2 < 1 + (-1) * sssss
+         \/ recXx__q2 < 1 + 1 * uu
+         \/ recXx__q2 < 1 + (-1) * uu
+         \/ recXx__q2 < 1 + 1 * x
+         \/ recXx__q2 < 1 + (-1) * x
+         \/ recXx__q2 < 1
+         \/ Xx__q recXx__q2 recXx__q uu sssss 0 (\k__q. k__q x) (\k__q_foo. k__q_foo x))
+   \/ -recXx__q >= 8 + 1 * 0 /\ -recXx__q >= 8 + -1 * 0 /\ -recXx__q >= 8 + 1 * x
+      /\ -recXx__q >= 8 + -1 * x
+      /\ -recXx__q >= 8
+      /\ (∀uu. 
+           ∀recXx__q2. 
+            recXx__q2 < 1 + 1 * 0 \/ recXx__q2 < 1 + (-1) * 0 \/ recXx__q2 < 1 + 1 * sssss
+            \/ recXx__q2 < 1 + (-1) * sssss
+            \/ recXx__q2 < 1 + 1 * uu
+            \/ recXx__q2 < 1 + (-1) * uu
+            \/ recXx__q2 < 1 + 1 * x
+            \/ recXx__q2 < 1 + (-1) * x
+            \/ recXx__q2 < 1 + 1 * -recXx__q
+            \/ recXx__q2 < 1 + (-1) * -recXx__q
+            \/ recXx__q2 < 1
+            \/ Xx__q recXx__q2 (-recXx__q) uu sssss 0 (\k__q. k__q x) (\k__q_foo. k__q_foo x))
+   \/ Exists2 x sssss (recXx__q - 1))
+  /\ recXx__q >= 0.
+Exists3 x sssss recXx__q =v
+  (recXx__q >= 8 + 1 * 0 /\ recXx__q >= 8 + -1 * 0 /\ recXx__q >= 8 + 1 * x
+   /\ recXx__q >= 8 + -1 * x
+   /\ recXx__q >= 8
+   /\ (∀uu. 
+        ∀recXx__q2. 
+         recXx__q2 < 1 + 1 * 0 \/ recXx__q2 < 1 + (-1) * 0 \/ recXx__q2 < 1 + 1 * -sssss
+         \/ recXx__q2 < 1 + (-1) * -sssss
+         \/ recXx__q2 < 1 + 1 * uu
+         \/ recXx__q2 < 1 + (-1) * uu
+         \/ recXx__q2 < 1 + 1 * x
+         \/ recXx__q2 < 1 + (-1) * x
+         \/ recXx__q2 < 1
+         \/ Xx__q recXx__q2 recXx__q uu (-sssss) 0 (\k__q. k__q x) (\k__q_foo. k__q_foo x))
+   \/ -recXx__q >= 8 + 1 * 0 /\ -recXx__q >= 8 + -1 * 0 /\ -recXx__q >= 8 + 1 * x
+      /\ -recXx__q >= 8 + -1 * x
+      /\ -recXx__q >= 8
+      /\ (∀uu. 
+           ∀recXx__q2. 
+            recXx__q2 < 1 + 1 * 0 \/ recXx__q2 < 1 + (-1) * 0 \/ recXx__q2 < 1 + 1 * -sssss
+            \/ recXx__q2 < 1 + (-1) * -sssss
+            \/ recXx__q2 < 1 + 1 * uu
+            \/ recXx__q2 < 1 + (-1) * uu
+            \/ recXx__q2 < 1 + 1 * x
+            \/ recXx__q2 < 1 + (-1) * x
+            \/ recXx__q2 < 1 + 1 * -recXx__q
+            \/ recXx__q2 < 1 + (-1) * -recXx__q
+            \/ recXx__q2 < 1
+            \/ Xx__q recXx__q2 (-recXx__q) uu (-sssss) 0 (\k__q. k__q x) (\k__q_foo. k__q_foo x))
+   \/ Exists3 x sssss (recXx__q - 1))
+  /\ recXx__q >= 0.
+Exists4 x sssss recXx__q =v
+  (recXx__q >= 8 + 1 * 0 /\ recXx__q >= 8 + -1 * 0 /\ recXx__q >= 8 + 1 * -x
+   /\ recXx__q >= 8 + -1 * -x
+   /\ recXx__q >= 8
+   /\ (∀uu. 
+        ∀recXx__q2. 
+         recXx__q2 < 1 + 1 * 0 \/ recXx__q2 < 1 + (-1) * 0 \/ recXx__q2 < 1 + 1 * sssss
+         \/ recXx__q2 < 1 + (-1) * sssss
+         \/ recXx__q2 < 1 + 1 * uu
+         \/ recXx__q2 < 1 + (-1) * uu
+         \/ recXx__q2 < 1 + 1 * -x
+         \/ recXx__q2 < 1 + (-1) * -x
+         \/ recXx__q2 < 1
+         \/ Xx__q recXx__q2 recXx__q uu sssss 0 (\k__q. k__q (-x)) (\k__q_foo. k__q_foo (-x)))
+   \/ -recXx__q >= 8 + 1 * 0 /\ -recXx__q >= 8 + -1 * 0 /\ -recXx__q >= 8 + 1 * -x
+      /\ -recXx__q >= 8 + -1 * -x
+      /\ -recXx__q >= 8
+      /\ (∀uu. 
+           ∀recXx__q2. 
+            recXx__q2 < 1 + 1 * 0 \/ recXx__q2 < 1 + (-1) * 0 \/ recXx__q2 < 1 + 1 * sssss
+            \/ recXx__q2 < 1 + (-1) * sssss
+            \/ recXx__q2 < 1 + 1 * uu
+            \/ recXx__q2 < 1 + (-1) * uu
+            \/ recXx__q2 < 1 + 1 * -x
+            \/ recXx__q2 < 1 + (-1) * -x
+            \/ recXx__q2 < 1 + 1 * -recXx__q
+            \/ recXx__q2 < 1 + (-1) * -recXx__q
+            \/ recXx__q2 < 1
+            \/ Xx__q recXx__q2 (-recXx__q) uu sssss 0 (\k__q. k__q (-x)) (\k__q_foo. k__q_foo (-x)))
+   \/ Exists4 x sssss (recXx__q - 1))
+  /\ recXx__q >= 0.
+Exists5 x sssss recXx__q =v
+  (recXx__q >= 8 + 1 * 0 /\ recXx__q >= 8 + -1 * 0 /\ recXx__q >= 8 + 1 * -x
+   /\ recXx__q >= 8 + -1 * -x
+   /\ recXx__q >= 8
+   /\ (∀uu. 
+        ∀recXx__q2. 
+         recXx__q2 < 1 + 1 * 0 \/ recXx__q2 < 1 + (-1) * 0 \/ recXx__q2 < 1 + 1 * -sssss
+         \/ recXx__q2 < 1 + (-1) * -sssss
+         \/ recXx__q2 < 1 + 1 * uu
+         \/ recXx__q2 < 1 + (-1) * uu
+         \/ recXx__q2 < 1 + 1 * -x
+         \/ recXx__q2 < 1 + (-1) * -x
+         \/ recXx__q2 < 1
+         \/ Xx__q recXx__q2 recXx__q uu (-sssss) 0 (\k__q. k__q (-x)) (\k__q_foo. k__q_foo (-x)))
+   \/ -recXx__q >= 8 + 1 * 0 /\ -recXx__q >= 8 + -1 * 0 /\ -recXx__q >= 8 + 1 * -x
+      /\ -recXx__q >= 8 + -1 * -x
+      /\ -recXx__q >= 8
+      /\ (∀uu. 
+           ∀recXx__q2. 
+            recXx__q2 < 1 + 1 * 0 \/ recXx__q2 < 1 + (-1) * 0 \/ recXx__q2 < 1 + 1 * -sssss
+            \/ recXx__q2 < 1 + (-1) * -sssss
+            \/ recXx__q2 < 1 + 1 * uu
+            \/ recXx__q2 < 1 + (-1) * uu
+            \/ recXx__q2 < 1 + 1 * -x
+            \/ recXx__q2 < 1 + (-1) * -x
+            \/ recXx__q2 < 1 + 1 * -recXx__q
+            \/ recXx__q2 < 1 + (-1) * -recXx__q
+            \/ recXx__q2 < 1
+            \/ Xx__q recXx__q2 (-recXx__q) uu (-sssss) 0 (\k__q. k__q (-x))
+                (\k__q_foo. k__q_foo (-x)))
+   \/ Exists5 x sssss (recXx__q - 1))
+  /\ recXx__q >= 0.
+Pred__q_foo _x x___q_foo k__q_foo =v x___q_foo (\x. k__q_foo (x - 1)).
+Foo79__q_foo recFoo79__q_foo _x x___q_foo b =v
+  recFoo79__q_foo > 0
+  /\ (b != 1 \/ Check2__q_foo _x x___q_foo (Foo79__q_foo (recFoo79__q_foo - 1) _x x___q_foo)).
+Check2__q_foo _x x___q_foo k__q_foo =v
+  x___q_foo (\x. (x > 0 \/ k__q_foo 1) /\ (x <= 0 \/ k__q_foo 0)).
+Xx82__q_foo k__q_foo =v k__q_foo 0.
+Bar__q recBar__q recBar__q2 _x x___q x___q_foo k__q =v
+  recBar__q > 0
+  /\ (recBar__q2 <= 0
+      \/ x___q
+          (\x. 
+            (x <= 0
+             \/ (∀uu. 
+                  Bar__q (recBar__q - 1) (recBar__q2 - 1) uu (\k__q2. x___q (\x2. k__q2 (x2 - 1)))
+                   (Pred__q_foo _x x___q_foo) k__q))
+            /\ (x > 0 \/ k__q _x x___q_foo))).
+Foo__q _x x___q_foo =v
+  Check2__q_foo _x x___q_foo
+   (\b. 
+     ∀recFoo79__q_foo. 
+      recFoo79__q_foo < 1 + 1 * b \/ recFoo79__q_foo < 1 + (-1) * b \/ recFoo79__q_foo < 1 + 1 * _x
+      \/ recFoo79__q_foo < 1 + (-1) * _x
+      \/ recFoo79__q_foo < 1
+      \/ Foo79__q_foo recFoo79__q_foo _x x___q_foo b).
+Xx__q recXx__q recXx__q2 _x ttttt flag x___q x___q_foo =v
+  recXx__q > 0
+  /\ (recXx__q2 <= 0
+      \/ (flag != 1 \/ Foo__q _x Xx82__q_foo
+          \/ (∀recBar__q. 
+               recBar__q < 1 + 1 * _x \/ recBar__q < 1 + (-1) * _x \/ recBar__q < 1 + 1 * 8
+               \/ recBar__q < 1 + (-1) * 8
+               \/ recBar__q < 1 + 1 * (8 + -1 * ttttt)
+               \/ recBar__q < 1 + (-1) * (8 + -1 * ttttt)
+               \/ recBar__q < 1 + 1 * (8 + 1 * ttttt)
+               \/ recBar__q < 1 + (-1) * (8 + 1 * ttttt)
+               \/ recBar__q < 1
+               \/ Xx__q_e _x ttttt x___q x___q_foo recBar__q))
+         /\ (flag = 1 \/ Xx__q (recXx__q - 1) (recXx__q2 - 1) _x ttttt 1 x___q x___q_foo)).
+Xx__q_e _x ttttt x___q x___q_foo recBar__q =v
+  (recBar__q >= 8 + 1 * ttttt /\ recBar__q >= 8 + -1 * ttttt /\ recBar__q >= 8
+   /\ (∀recBar__q2. 
+        recBar__q2 < 1 + 1 * _x \/ recBar__q2 < 1 + (-1) * _x \/ recBar__q2 < 1
+        \/ Bar__q recBar__q2 recBar__q _x x___q x___q_foo (\__x. \r___q_foo. Foo__q __x r___q_foo))
+   \/ -recBar__q >= 8 + 1 * ttttt /\ -recBar__q >= 8 + -1 * ttttt /\ -recBar__q >= 8
+      /\ (∀recBar__q2. 
+           recBar__q2 < 1 + 1 * _x \/ recBar__q2 < 1 + (-1) * _x \/ recBar__q2 < 1 + 1 * -recBar__q
+           \/ recBar__q2 < 1 + (-1) * -recBar__q
+           \/ recBar__q2 < 1
+           \/ Bar__q recBar__q2 (-recBar__q) _x x___q x___q_foo
+               (\__x. \r___q_foo. Foo__q __x r___q_foo))
+   \/ Xx__q_e _x ttttt x___q x___q_foo (recBar__q - 1))
+  /\ recBar__q >= 0.

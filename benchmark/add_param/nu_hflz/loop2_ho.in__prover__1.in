@@ -1,0 +1,41 @@
+%HES
+Sentry =v
+  ∀m. 
+   ∀n. 
+    ∀sssss. 
+     sssss < 1 * m + 0 \/ sssss < (-1) * m + 0 \/ sssss < 1 * n + 0
+     \/ sssss < (-1) * n + 0
+     \/ sssss < 0
+     \/ (∀recXX. 
+          recXX < 2 + 2 * 0 \/ recXX < 2 + (-2) * 0 \/ recXX < 2 + 2 * m
+          \/ recXX < 2 + 2 * n
+          \/ recXX < 2 + (-2) * m
+          \/ recXX < 2 + (-2) * n
+          \/ recXX < 2
+          \/ XX recXX sssss 0 (\u. \k_main. k_main m) (\u. \k_main. k_main n)
+              (\x. true)).
+CHECK f k_check =v f 0 (\x. (x <= 0 \/ k_check 1) /\ (x > 0 \/ k_check 0)).
+F recF fm fn k_f =v
+  recF > 0
+  /\ CHECK fm
+      (\bm. 
+        CHECK fn
+         (\bn. 
+           ∀r. 
+            (r <= 0 \/ bm != 1 \/ PRED fm (\x. F (recF - 1) x fn k_f))
+            /\ (r > 0 /\ bm = 1
+                \/ (r > 0 \/ bn != 1 \/ PRED fn (\x. F (recF - 1) fm x k_f))
+                   /\ (r <= 0 /\ bn = 1 \/ k_f 0)))).
+PRED fx k_pred =v fx 0 (\x. k_pred (\u. \k_pred2. k_pred2 (x - 1))).
+XX recXX ttttt flag fm fn k_xx =v
+  recXX > 0
+  /\ (flag != 1
+      \/ (∀sssss. 
+           sssss < 1 * ttttt + 0 \/ sssss < (-1) * ttttt + 0 \/ sssss < 0
+           \/ (∀recF. 
+                recF < 2 + 2 * ttttt \/ recF < 2 + (-2) * ttttt \/ recF < 2
+                \/ F recF fm fn k_xx)))
+     /\ (flag = 1
+         \/ (∀sssss. 
+              sssss < 1 * ttttt + 0 \/ sssss < (-1) * ttttt + 0 \/ sssss < 0
+              \/ XX (recXX - 1) sssss 1 fm fn k_xx)).

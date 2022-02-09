@@ -1,0 +1,10 @@
+%HES
+Sentry =v ∀x. x < 1 \/ Exists x.
+Exists x =v
+  (F x (\x2. x2 0 (\x3. false)) \/ F (-x) (\x2. x2 0 (\x3. false)) \/ Exists (x - 1)) /\ x >= 0.
+APP i v h u k_app =v (i < 0 \/ APP (i - 1) v h 0 k_app) /\ (i >= 0 \/ h v (\x. x 0 k_app)).
+F x k_f =v
+  (x <= 0 \/ (∀x2. x2 < 1 + 1 * (x - 1) \/ x2 < 1 + (-1) * (x - 1) \/ x2 < 1 \/ F_e x k_f x2))
+  /\ (x > 0 \/ k_f (\u. \k_g. k_g 0)).
+F_e x k_f x2 =v
+  (k_f (APP x2 (x - 1) F) \/ k_f (APP (-x2) (x - 1) F) \/ F_e x k_f (x2 - 1)) /\ x2 >= 0.

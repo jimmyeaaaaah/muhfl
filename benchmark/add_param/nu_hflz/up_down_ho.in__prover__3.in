@@ -1,0 +1,67 @@
+%HES
+Sentry =v
+  ∀t. 
+   ∀t2. 
+    (t <= 0
+     \/ (∀sssss. 
+          sssss < 1 * t + 1 \/ sssss < (-1) * t + 1 \/ sssss < 1
+          \/ (∀recX_APP_DOWN. 
+               recX_APP_DOWN < 8 + 1 * 0 \/ recX_APP_DOWN < 8 + (-1) * 0
+               \/ recX_APP_DOWN < 8 + 1 * t
+               \/ recX_APP_DOWN < 8 + (-1) * t
+               \/ recX_APP_DOWN < 8
+               \/ X_APP_DOWN recX_APP_DOWN sssss 0 (\u. \k_main. k_main t)
+                   (\x. true))))
+    /\ (t > 0
+        \/ (t2 >= 0
+            \/ (∀sssss. 
+                 sssss < 1 * t2 + 1 \/ sssss < (-1) * t2 + 1 \/ sssss < 1
+                 \/ (∀recX_APP_UP. 
+                      recX_APP_UP < 8 + 1 * 0 \/ recX_APP_UP < 8 + (-1) * 0
+                      \/ recX_APP_UP < 8 + 1 * t2
+                      \/ recX_APP_UP < 8 + (-1) * t2
+                      \/ recX_APP_UP < 8
+                      \/ X_APP_UP recX_APP_UP sssss 0 (\u. \k_main. k_main t2)
+                          (\x. true))))
+           /\ (t2 < 0 \/ true)).
+CHECK f k_check =v f 0 (\x. (x != 0 \/ k_check 1) /\ (x = 0 \/ k_check 0)).
+DOWN recDOWN fx k_down =v
+  recDOWN > 0
+  /\ CHECK fx
+      (\b. 
+        (b != 1 \/ k_down 0)
+        /\ (b = 1
+            \/ fx 0
+                (\x. DOWN (recDOWN - 1) (\u. \k_pred. k_pred (x - 1)) k_down))).
+UP recUP fx k_up =v
+  recUP > 0
+  /\ CHECK fx
+      (\b. 
+        (b != 1 \/ k_up 0)
+        /\ (b = 1
+            \/ fx 0 (\x. UP (recUP - 1) (\u. \k_succ. k_succ (x + 1)) k_up))).
+X_APP_DOWN recX_APP_DOWN ttttt flag x k_x_App_Down =v
+  recX_APP_DOWN > 0
+  /\ (flag != 1
+      \/ (∀sssss. 
+           sssss < 1 * ttttt + 1 \/ sssss < (-1) * ttttt + 1 \/ sssss < 1
+           \/ (∀recDOWN. 
+                recDOWN < 8 + 1 * ttttt \/ recDOWN < 8 + (-1) * ttttt
+                \/ recDOWN < 8
+                \/ DOWN recDOWN x k_x_App_Down)))
+     /\ (flag = 1
+         \/ (∀sssss. 
+              sssss < 1 * ttttt + 1 \/ sssss < (-1) * ttttt + 1 \/ sssss < 1
+              \/ X_APP_DOWN (recX_APP_DOWN - 1) sssss 1 x k_x_App_Down)).
+X_APP_UP recX_APP_UP ttttt flag x k_x_App_Up =v
+  recX_APP_UP > 0
+  /\ (flag != 1
+      \/ (∀sssss. 
+           sssss < 1 * ttttt + 1 \/ sssss < (-1) * ttttt + 1 \/ sssss < 1
+           \/ (∀recUP. 
+                recUP < 8 + 1 * ttttt \/ recUP < 8 + (-1) * ttttt \/ recUP < 8
+                \/ UP recUP x k_x_App_Up)))
+     /\ (flag = 1
+         \/ (∀sssss. 
+              sssss < 1 * ttttt + 1 \/ sssss < (-1) * ttttt + 1 \/ sssss < 1
+              \/ X_APP_UP (recX_APP_UP - 1) sssss 1 x k_x_App_Up)).
