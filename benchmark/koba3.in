@@ -1,0 +1,29 @@
+%HES
+Sentry =v
+  ∀t1_1459. 
+    (t1_1459 <= 0
+     \/ DOWN (\k_main___1424. k_main___1424 t1_1459)
+         (\x_1440. true))
+    /\ (t1_1459 > 0
+        \/ UP (\k_main___1429. k_main___1429 t1_1459)
+                (\x_1440. true)).
+CHECK1 f_11 k_check1_155 =u
+  f_11 
+   (\x_1400. (x_1400 != 0 \/ k_check1_155 1) /\ (x_1400 = 0 \/ k_check1_155 0)).
+DOWN fx_8 k_down_233 =u
+  CHECK1 fx_8
+   (\b_1405. 
+     (b_1405 != 1 \/ k_down_233 0)
+     /\ (b_1405 = 1
+         \/ fx_8 
+             (\x_1411. 
+               DOWN ( \k_pred_1419. k_pred_1419 (x_1411 - 1))
+                k_down_233))).
+UP fx k_up_325 =u
+  CHECK1 fx
+   (\b_1462. 
+     (b_1462 != 1 \/ k_up_325 0)
+     /\ (b_1462 = 1
+         \/ fx 
+             (\x_1454. 
+               UP ( \k_succ_1437. k_succ_1437 (x_1454 + 1)) k_up_325))).

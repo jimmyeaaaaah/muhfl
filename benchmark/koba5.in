@@ -1,0 +1,4 @@
+%HES
+Sentry =v ∀x. (x<=0 \/ D (\k. k x)) /\ (x>0 \/ U (\k. k x)).
+D v  =u v (\x. x=0 \/ v (\x. D (\k. k(x-1)))).
+U v  =u v (\x. x=0 \/ v (\x. U (\k. k(x+1)))).
