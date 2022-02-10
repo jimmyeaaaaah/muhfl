@@ -88,6 +88,7 @@ let () =
       warn_string "Error when killing processes";
       pp_process_result Format.std_formatter code
     end);
+    if !Solve_options.remove_tmp_files then Hflmc2_util.remove_generated_files ();
     ignore @@ Signal.default_sys_behavior signal;
     shutdown 0
   )
@@ -104,8 +105,7 @@ let unix_system ?env timeout commands mode =
   
   log_string @@ "Run command: " ^ command ^ " " ^ (String.concat ~sep:" " arguments);
   
-  let r = Random.int 0x10000000 in
-  let pid_name = Printf.sprintf "/tmp/%d_pid.tmp" r in
+  let pid_name = Hflmc2_util.gen_temp_filename "/tmp/" "_pid.tmp" in
   (match mode with
   | Some mode -> append_to_hashtbl_of_list pids mode pid_name
   | None -> ());

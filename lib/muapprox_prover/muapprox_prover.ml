@@ -281,11 +281,10 @@ module MochiSolver : BackendSolver = struct
   let save_hes_to_file hes mode debug_context no_temp_files =
     let buf =
       Hflmc2_util.fmt_string Mochi_solver.convert_nu_hflz_to_program_with_exception hes in
-    let r = Random.int 0x10000000 in
     Sys.getcwd ()
     >>| (fun cwd ->
       (* MoCHi cannot operate on a file in /tmp directory *)
-      cwd ^ "/mochi__temp__" ^ mode ^ "__" ^ string_of_int r ^ ".ml")
+      Hflmc2_util.gen_temp_filename (cwd ^ "/mochi__temp__" ^ mode ^ "__") ".ml")
     >>= (fun file ->
       Writer.save file ~contents:buf
       >>| (fun () ->
@@ -363,8 +362,7 @@ module KatsuraSolver : BackendSolver = struct
           log_string "using replacer";
           let hes = Abbrev_variable_numbers.abbrev_variable_numbers_hes hes in
           let path = Manipulate.Print_syntax.MachineReadable.save_hes_to_file ~without_id:true true hes in
-          let r = Random.int 0x10000000 in
-          let stdout_name = Printf.sprintf "/tmp/%d_stdout.tmp" r in
+          let stdout_name = Hflmc2_util.gen_temp_filename "/tmp/" "_stdout.tmp" in
           let flag =
             if with_partial_analysis then (
               if with_usage_analysis then
@@ -643,8 +641,7 @@ let is_onlymu_onlyexists (entry, rules) =
 let is_nu_only_tractable hes =
   let path = Manipulate.Print_syntax.MachineReadable.save_hes_to_file ~without_id:false true hes in
   let solver_path = get_katsura_solver_path () in
-  let r = Random.int 0x10000000 in
-  let stdout_name = Printf.sprintf "/tmp/%d_stdout.tmp" r in
+  let stdout_name = Hflmc2_util.gen_temp_filename "/tmp/" "_stdout.tmp" in
   let command = "\"" ^ solver_path ^ "\" --tractable-check-only \"" ^ path ^ "\" > " ^ stdout_name in
   log_string @@ "command: " ^ command;
   Unix.system command
@@ -1272,6 +1269,7 @@ let check_validity solve_options (hes : 'a Hflz.hes) cont =
   upon dresult (
     fun (result, info) ->
       cont (result, info);
+      if !Solve_options.remove_tmp_files then Hflmc2_util.remove_generated_files ();
       shutdown 0);
   Core.never_returns(Scheduler.go())
 

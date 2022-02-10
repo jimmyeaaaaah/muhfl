@@ -41,6 +41,7 @@ let remove_disjunctions = ref (Obj.magic())
 let only_remove_disjunctions = ref (Obj.magic())
 let formula_margin = ref (Obj.magic())
 let mufu = ref (Obj.magic())
+let remove_tmp_files = ref (Obj.magic())
 
 (******************************************************************************)
 (* Parser                                                                     *)
@@ -148,6 +149,9 @@ type params =
   
   ; mufu : bool [@default false]
   (** Preprocess a formula with the mufu transformation *)
+  
+  ; remove_tmp_files : bool [@default false]
+  (** Remove temporary files in /tmp on exit  *)
   }
 [@@deriving cmdliner,show]
 
@@ -187,6 +191,7 @@ let set_up_params params =
   set_ref only_remove_disjunctions    params.only_remove_disjunctions;
   set_ref formula_margin              params.formula_margin;
   set_ref mufu                        params.mufu;
+  set_ref remove_tmp_files            params.remove_tmp_files;
   params.input
 
 (******************************************************************************)

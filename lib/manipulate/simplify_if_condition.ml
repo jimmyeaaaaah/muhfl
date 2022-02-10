@@ -118,11 +118,10 @@ module FormulaSimplification = struct
     print_endline "origin:";
     print_endline @@ Print_syntax.show_hflz formula;
     
-    let get_random_file_name () = Printf.sprintf "/tmp/%d.tmp" (Random.self_init (); Random.int 0x10000000) in
-    let file_name = get_random_file_name () in
+    let file_name = Hflmc2_util.gen_temp_filename "/tmp/" ".tmp" in
     print_endline "simplify_bound_with_z3"; print_endline "input file_name"; print_endline file_name;
     Hflmc2_util.write_file file_name smt2;
-    let output_path = get_random_file_name () in
+    let output_path = Hflmc2_util.gen_temp_filename "/tmp/" ".tmp" in
     ignore @@ Unix.system @@ z3_path ^ " " ^ file_name ^ " pp.max_depth=10000 pp.min-alias-size=10000 > " ^ output_path;
     print_endline "output file_name"; print_endline output_path;
     let s = Hflmc2_util.read_file output_path in

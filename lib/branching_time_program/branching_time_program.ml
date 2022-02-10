@@ -116,10 +116,9 @@ let check_branching_events (program : Raw_program.Program.program_expr * Raw_pro
     )
   
 let translate_branching_time_program file =
-  let get_random_file_name () = Printf.sprintf "/tmp/%d.tmp" (Random.self_init (); Random.int 0x10000000) in
   let extracted, extracted_line_numbers, remaining, remaining_line_numbers = Raw_program.Program_main.split_with file "%PROGRAM" in
-  let extracted_file = get_random_file_name () in
-  let remaining_file = get_random_file_name () in
+  let extracted_file = Hflmc2_util.gen_temp_filename "/tmp/" ".tmp" in
+  let remaining_file = Hflmc2_util.gen_temp_filename "/tmp/" ".tmp" in
   Hflmc2_util.write_file extracted_file extracted;
   Hflmc2_util.write_file remaining_file remaining;
   print_endline "parse_file";

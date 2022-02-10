@@ -218,9 +218,7 @@ module FptProverHes = struct
         (Fmt.list hflz_hes_rule') rules
     
   let save_hes_to_file ?(file) hes =
-    Random.self_init ();
-    let r = Random.int 0x10000000 in
-    let file = match file with Some s -> s | None -> Printf.sprintf "/tmp/%s-%d.smt2" "nuonly" r in
+    let file = match file with Some s -> s | None -> Hflmc2_util.gen_temp_filename "/tmp/nuonly-" ".smt2" in
     let oc = open_out file in
     let fmt = Format.formatter_of_out_channel oc in
     Format.pp_set_margin fmt 1000;
@@ -306,9 +304,7 @@ module MachineReadable = struct
         (Fmt.list (hflz_hes_rule' format_ty_ show_forall without_id)) rules
     
   let save_hes_to_file ?(file) ?(without_id=false) show_forall hes =
-    Random.self_init ();
-    let r = Random.int 0x10000000 in
-    let file = match file with Some s -> s | None -> Printf.sprintf "/tmp/%s-%d.smt2" "nuonly" r in
+    let file = match file with Some s -> s | None -> Hflmc2_util.gen_temp_filename "/tmp/nuonly-" ".smt2" in
     let oc = open_out file in
     let fmt = Format.formatter_of_out_channel oc in
     (* Format.pp_set_margin fmt 1000; *)
@@ -404,9 +400,7 @@ module AsProgram = struct
       Fmt.string ppf "let () = print_string (string_of_bool (sentry ()))"
     
   let save_hes_to_file ?(file) ?(without_id=false) hes =
-    Random.self_init ();
-    let r = Random.int 0x10000000 in
-    let file = match file with Some s -> s | None -> Printf.sprintf "/tmp/%s-%d.ml" "nuonly" r in
+    let file = match file with Some s -> s | None -> Hflmc2_util.gen_temp_filename "/tmp/nuonly-" ".ml" in
     let oc = open_out file in
     let fmt = Format.formatter_of_out_channel oc in
     (* Format.pp_set_margin fmt 1000; *)

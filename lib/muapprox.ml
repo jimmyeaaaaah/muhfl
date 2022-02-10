@@ -96,6 +96,7 @@ let get_solve_options file =
   let approx_parameter, use_custom_parameter =
     get_approx_parameter !Options.coe !Options.coe_arguments !Options.default_lexicographic_order in
   Manipulate.Print_syntax.formula_margin := !Options.formula_margin;
+  remove_tmp_files := !Options.remove_tmp_files;
   {
     no_backend_inlining = !Options.no_backend_inlining;
     log_level = !Options.log_level;
@@ -136,9 +137,7 @@ let get_solve_options file =
 let simplify_agg_ hes =
   let hes = Manipulate.Hes_optimizer.simplify_all hes in
   let hes = Manipulate.Hes_optimizer.simplify_agg false hes in
-  let path =
-    let r = Random.int 0x10000000 in
-    Printf.sprintf "/tmp/%d.tmp" r in
+  let path = Hflmc2_util.gen_temp_filename "/tmp/" ".tmp" in
   ignore @@ Manipulate.Print_syntax.MachineReadable.save_hes_to_file ~file:path ~without_id:false true hes;
   log_string @@ "simplified formula: " ^ path;
   let hes = parse path in
