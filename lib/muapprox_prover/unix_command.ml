@@ -88,7 +88,7 @@ let () =
       warn_string "Error when killing processes";
       pp_process_result Format.std_formatter code
     end);
-    if !Solve_options.remove_tmp_files then Hflmc2_util.remove_generated_files ();
+    if !Solve_options.remove_temporary_files then Hflmc2_util.remove_generated_files ();
     ignore @@ Signal.default_sys_behavior signal;
     shutdown 0
   )

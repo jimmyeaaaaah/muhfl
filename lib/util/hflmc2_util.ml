@@ -1,12 +1,12 @@
 type process_status = Unix.process_status
 let partition = List.partition
 
-let generate_temp_files : string list ref = ref []
+let generated_temp_files : string list ref = ref []
 let () = Random.self_init ()
 let gen_temp_filename prefix suffix =
   let random_string = Printf.sprintf "%d_%d" (Random.int 0x10000000) (Random.int 0x10000000) in
   let filename = prefix ^ random_string ^ suffix in
-  generate_temp_files := filename :: !generate_temp_files;
+  generated_temp_files := filename :: !generated_temp_files;
   filename
 
 let remove_generated_files () =
@@ -18,8 +18,8 @@ let remove_generated_files () =
       with Sys_error _e -> ()
         (* ; print_endline @@ "Error when removeing temporary files (" ^ _e ^ ")" *)
     )
-    !generate_temp_files;
-  generate_temp_files := []
+    !generated_temp_files;
+  generated_temp_files := []
 
 let partition_map t ~f =
   let rec loop t fst snd =

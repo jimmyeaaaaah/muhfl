@@ -96,7 +96,7 @@ let get_solve_options file =
   let approx_parameter, use_custom_parameter =
     get_approx_parameter !Options.coe !Options.coe_arguments !Options.default_lexicographic_order in
   Manipulate.Print_syntax.formula_margin := !Options.formula_margin;
-  remove_tmp_files := !Options.remove_tmp_files;
+  remove_temporary_files := !Options.remove_temporary_files;
   {
     no_backend_inlining = !Options.no_backend_inlining;
     log_level = !Options.log_level;

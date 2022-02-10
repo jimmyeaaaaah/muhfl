@@ -396,7 +396,7 @@ module KatsuraSolver : BackendSolver = struct
       path
     )
     
-  let solver_command hes_path solver_options stop_if_intractable will_try_weak_subtype remove_disjunction_only =
+  let solver_command hes_path solver_options stop_if_intractable will_try_weak_subtype remove_disjunction_only remove_temporary_files =
     let solver_path = get_katsura_solver_path () in
     Array.of_list (
       solver_path :: ["--solve-dual=auto-conservative"] @
@@ -409,7 +409,8 @@ module KatsuraSolver : BackendSolver = struct
             (if will_try_weak_subtype then Some "--mode-burn-et-al" else None);
             (if solver_options.backend_options <> "" then Some solver_options.backend_options else None);
             (if remove_disjunction_only then Some "--stop-if-tractable" else None);
-            (if remove_disjunction_only then Some "--remove-disjunctions-if-intractable" else None)
+            (if remove_disjunction_only then Some "--remove-disjunctions-if-intractable" else None);
+            (if remove_temporary_files then Some "--remove-temporary-files" else None)
           ]
         ) @
         [hes_path]
@@ -456,7 +457,7 @@ module KatsuraSolver : BackendSolver = struct
     save_hes_to_file hes (if debug_context.mode = "prover" && solve_options.approx_parameter.add_arg_coe1 <> 0 && solve_options.approx_parameter.lexico_pair_number = 1 then solve_options.replacer else "") debug_context solve_options.with_usage_analysis solve_options.with_partial_analysis solve_options.no_temp_files
     >>= (fun path ->
       let debug_context = { debug_context with temp_file = path } in
-      let command = solver_command path solve_options stop_if_intractable will_try_weak_subtype stop_if_tractable in
+      let command = solver_command path solve_options stop_if_intractable will_try_weak_subtype stop_if_tractable !Solve_options.remove_temporary_files in
       if solve_options.dry_run then failwith @@ "DRY RUN (" ^ show_debug_context debug_context ^ ") / command: " ^ (Array.to_list command |> String.concat " ");
       run_command_with_timeout solve_options.timeout command (Some debug_context.mode) >>|
         (fun (status_code, elapsed, stdout, stderr) ->
@@ -1269,7 +1270,7 @@ let check_validity solve_options (hes : 'a Hflz.hes) cont =
   upon dresult (
     fun (result, info) ->
       cont (result, info);
-      if !Solve_options.remove_tmp_files then Hflmc2_util.remove_generated_files ();
+      if !Solve_options.remove_temporary_files then Hflmc2_util.remove_generated_files ();
       shutdown 0);
   Core.never_returns(Scheduler.go())
 

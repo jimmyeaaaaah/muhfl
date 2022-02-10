@@ -1,7 +1,7 @@
 type solver_type = Iwayama | Katsura | Suzuki | Mochi
 type first_order_solver_type = FptProverRecLimit
 
-let remove_tmp_files = ref false
+let remove_temporary_files = ref false
 
 type approx_parameter = {
   coe1: int;
