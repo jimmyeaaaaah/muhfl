@@ -425,7 +425,104 @@ let set_use_tag (rules : ptype thes_rule list): ptype thes_rule list =
   let rules = assign_flags rules in
   let rules = set_tag_in_undetermined_tags rules TUse in
   rules
+
+let decompose_ors x phi =
+  let rec to_ors phi = match phi with
+    | Hflz.Or (p1, p2) -> to_ors p1 @ to_ors p2
+    | _ -> [phi]
+  in
+  match phi with
+  | Hflz.Or (predicates, body) -> begin
+    let ors = to_ors predicates in
+    let _, body = Hflz_util.beta IdMap.empty body in
+    print_endline @@ "a2, x: " ^ x.Id.name;
+    print_endline @@ Print_syntax.show_hflz body;
+    if
+      (not @@ IdSet.exists ~f:(Id.eq x) (Hflz.fvs body)) &&
+      List.for_all
+        (fun p -> match p with
+          | Hflz.Pred (op, [Var x'; a]) when (op = Le || op = Lt) && Id.eq x' x -> begin
+            print_endline @@ "a3, x: " ^ x.Id.name;
+            match a with
+            | Int _ -> true
+            | Op (Add, [Op (Mult, [n; f]); Int _]) -> begin
+              print_endline @@ "a4, x: " ^ x.Id.name;
+              IdSet.is_empty (Hflz.fvs (Arith n)) &&
+              (not @@ IdSet.exists ~f:(Id.eq x) (Hflz.fvs (Arith f)))
+            end
+            | _ -> false
+          end
+          | _ -> false
+        )
+        ors
+    then Some (predicates, body)
+    else None
+  end
+  | _ -> None
   
+  (* let rec go_or body =
+    match body with
+    | Or (p1, p2) ->
+      go_or p1 @ go_or p2
+    | _ -> [body]
+  in
+  let ors = go_or body in
+  let ors =
+    List.partition
+      (fun e -> match e with
+        | Pred (Le, [Var v; a]) | Pred (Lt, [Var v; a])
+        | Pred (Ge, [a; Var v]) | Pred (Gt, [a; Var v]) -> begin
+          if Id.eq v x then begin
+            true
+          end else false
+        end
+        | _ -> false
+      )
+      ors in *)
+  
+
+let eliminate_unused_universal_quantifiers_for_extra_arguments body =
+  let s_len = String.length Add_arguments_adding.extra_arg_name in
+  let rec go body = match body with
+    | Hflz.Forall (x, body) -> begin
+      print_endline @@ "a1, x: " ^ x.Id.name;
+      let result =
+        if String.length x.Id.name >= s_len
+            && String.sub x.Id.name 0 s_len = Add_arguments_adding.extra_arg_name then begin
+          match decompose_ors x body with
+          | Some (_simple_ors, body) ->
+            Some (go body)
+          | None -> None
+          
+          (* match body with
+          | Or (predicates, body) -> begin
+            if not @@ IdSet.exists (Hflz.fvs body) ~f:(Id.eq x) then begin
+              match to_ors predicates with
+              | Some ors ->
+                if List.for_all (is_simple_form x) ors then Some (go body)
+                else None
+              | None -> None
+            end else None
+          end
+          | _ -> None *)
+        end else None in
+      match result with
+      | Some f -> f
+      | None -> Hflz.Forall (x, go body)
+    end
+    | Var v -> Var v
+    | Bool b -> Bool b
+    | Or (p1, p2) -> Or (go p1, go p2)
+    | And (p1, p2) -> And (go p1, go p2)
+    | Abs (x, body) -> Abs (x, go body)
+    | Exists (x, body) -> Exists (x, go body)
+    | App (p1, p2) -> App (go p1, go p2)
+    | Arith a -> Arith a
+    | Pred (p, b) -> Pred (p, b)
+      
+  in
+  go body
+
 let infer with_partial_analysis with_usage_analysis (hes : 'a Hflz.hes) add_arg_coe1 add_arg_coe2 no_temp_files (do_not_use_inner_ty : bool) =
   let original_rules = Hflz.merge_entry_rule hes in
   
@@ -481,6 +578,11 @@ let infer with_partial_analysis with_usage_analysis (hes : 'a Hflz.hes) add_arg_
     Add_arguments_adding.add_params add_arg_coe1 add_arg_coe2 outer_mu_funcs rules do_not_use_inner_ty in
   let rules = Add_arguments_adding.to_hes rules in
   
+  let rules =
+    List.map
+      (fun {Hflz.var; body; fix} ->
+        {Hflz.var; body = eliminate_unused_universal_quantifiers_for_extra_arguments body; fix}
+      ) rules in
   let hes = Hflz.decompose_entry_rule rules in
   let hes = Hflz_typecheck.set_variable_ty hes in  
   hes, id_type_map, id_ho_map
