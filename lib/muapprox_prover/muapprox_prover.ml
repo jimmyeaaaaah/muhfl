@@ -747,7 +747,7 @@ let elim_mu_exists solve_options (hes : 'a Hflz.hes) name =
   let t_count = ref 0 in
   
   let add_arguments hes =
-    Manipulate.Add_arguments_infer_partial_application.infer solve_options.with_partial_analysis solve_options.with_usage_analysis hes add_arg_coe1 add_arg_coe2 solve_options.no_temp_files (lexico_pair_number > 1)
+    Manipulate.Add_arguments_entry.infer solve_options.with_partial_analysis solve_options.with_usage_analysis hes add_arg_coe1 add_arg_coe2 solve_options.no_temp_files (lexico_pair_number > 1)
   in
   
   if no_elim then begin
