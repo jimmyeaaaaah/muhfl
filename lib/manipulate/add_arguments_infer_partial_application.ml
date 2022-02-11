@@ -435,18 +435,14 @@ let decompose_ors x phi =
   | Hflz.Or (predicates, body) -> begin
     let ors = to_ors predicates in
     let _, body = Hflz_util.beta IdMap.empty body in
-    print_endline @@ "a2, x: " ^ x.Id.name;
-    print_endline @@ Print_syntax.show_hflz body;
     if
       (not @@ IdSet.exists ~f:(Id.eq x) (Hflz.fvs body)) &&
       List.for_all
         (fun p -> match p with
           | Hflz.Pred (op, [Var x'; a]) when (op = Le || op = Lt) && Id.eq x' x -> begin
-            print_endline @@ "a3, x: " ^ x.Id.name;
             match a with
             | Int _ -> true
             | Op (Add, [Op (Mult, [n; f]); Int _]) -> begin
-              print_endline @@ "a4, x: " ^ x.Id.name;
               IdSet.is_empty (Hflz.fvs (Arith n)) &&
               (not @@ IdSet.exists ~f:(Id.eq x) (Hflz.fvs (Arith f)))
             end
@@ -459,33 +455,11 @@ let decompose_ors x phi =
     else None
   end
   | _ -> None
-  
-  (* let rec go_or body =
-    match body with
-    | Or (p1, p2) ->
-      go_or p1 @ go_or p2
-    | _ -> [body]
-  in
-  let ors = go_or body in
-  let ors =
-    List.partition
-      (fun e -> match e with
-        | Pred (Le, [Var v; a]) | Pred (Lt, [Var v; a])
-        | Pred (Ge, [a; Var v]) | Pred (Gt, [a; Var v]) -> begin
-          if Id.eq v x then begin
-            true
-          end else false
-        end
-        | _ -> false
-      )
-      ors in *)
-  
 
 let eliminate_unused_universal_quantifiers_for_extra_arguments body =
   let s_len = String.length Add_arguments_adding.extra_arg_name in
   let rec go body = match body with
     | Hflz.Forall (x, body) -> begin
-      print_endline @@ "a1, x: " ^ x.Id.name;
       let result =
         if String.length x.Id.name >= s_len
             && String.sub x.Id.name 0 s_len = Add_arguments_adding.extra_arg_name then begin
@@ -493,18 +467,6 @@ let eliminate_unused_universal_quantifiers_for_extra_arguments body =
           | Some (_simple_ors, body) ->
             Some (go body)
           | None -> None
-          
-          (* match body with
-          | Or (predicates, body) -> begin
-            if not @@ IdSet.exists (Hflz.fvs body) ~f:(Id.eq x) then begin
-              match to_ors predicates with
-              | Some ors ->
-                if List.for_all (is_simple_form x) ors then Some (go body)
-                else None
-              | None -> None
-            end else None
-          end
-          | _ -> None *)
         end else None in
       match result with
       | Some f -> f
@@ -519,7 +481,6 @@ let eliminate_unused_universal_quantifiers_for_extra_arguments body =
     | App (p1, p2) -> App (go p1, go p2)
     | Arith a -> Arith a
     | Pred (p, b) -> Pred (p, b)
-      
   in
   go body
 
