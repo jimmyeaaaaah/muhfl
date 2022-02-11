@@ -582,4 +582,6 @@ let simplify_agg trivial_only hes =
   |> show_hes "simplify_agg (6)"
   |> Constant_propagation.run |> go
   |> show_hes "simplify_agg (7)"
+  |> Constant_propagation.run |> go
+  |> show_hes "simplify_agg (8)"
   

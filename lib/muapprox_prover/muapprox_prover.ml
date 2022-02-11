@@ -3,7 +3,7 @@ module Fixpoint = Hflmc2_syntax.Fixpoint
 module Status = Status
 module Solve_options = Solve_options
 module Hflz_mani = Manipulate.Hflz_manipulate
-module Check_formula_equality = Check_formula_equality
+module Check_formula_equality = Manipulate.Check_formula_equality
 module Abbrev_variable_numbers = Abbrev_variable_numbers
 module Mochi_solver = Mochi_solver
 

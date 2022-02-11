@@ -52,7 +52,7 @@ let assign_serial_to_vars gen env (phi : Type.simple_ty Hflz.t) =
     | Var v -> begin
       match find_id_opt v env with
       | Some (_, v') ->
-        Var (Manipulate.Hflz_util.unlift_id v')
+        Var (Hflz_util.unlift_id v')
       | None -> failwith @@ "(assign_serial_to_vars, go) unbounded variable (" ^ v.name ^ ")"
     end 
   and go_arith env (psi : Arith.t) : Arith.t = match psi with
@@ -67,17 +67,24 @@ let assign_serial_to_vars gen env (phi : Type.simple_ty Hflz.t) =
     end
     | Op (op, ariths) -> Op (op, List.map (go_arith env) ariths) in
   go env phi
-  
+
+let assign_serial_to_vars_formula body =
+  let counter = ref 0 in
+  let gen ty =
+    counter := !counter + 1;
+    { Id.name = "x" ^ (string_of_int !counter); id = !counter; ty = ty } in
+  assign_serial_to_vars gen [] body
+
 let assign_serial_to_vars_hes ((entry, rules) : Type.simple_ty Hflz.hes) =
   let counter = ref 0 in
   let gen ty =
     counter := !counter + 1;
     { Id.name = "x" ^ (string_of_int !counter); id = !counter; ty = ty } in
-  let env = List.map (fun rule -> (Manipulate.Hflz_util.lift_id rule.Hflz.var, gen (Type.TySigma rule.Hflz.var.ty))) rules in
+  let env = List.map (fun rule -> (Hflz_util.lift_id rule.Hflz.var, gen (Type.TySigma rule.Hflz.var.ty))) rules in
   let entry = assign_serial_to_vars gen env entry in
   let rules =
     List.map (fun rule -> {
-      Hflz.var = Manipulate.Hflz_util.unlift_id (find_id rule.Hflz.var env |> snd);
+      Hflz.var = Hflz_util.unlift_id (find_id rule.Hflz.var env |> snd);
       fix = rule.fix;
       body = assign_serial_to_vars gen env rule.body}) rules in
   entry, rules

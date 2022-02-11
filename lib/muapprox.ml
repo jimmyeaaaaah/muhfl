@@ -161,8 +161,8 @@ let main file cont =
   let psi = if !Options.aggressive_simplification then simplify_agg_ psi else psi in
   Muapprox_prover.check_validity solve_options psi (fun (s1, info) -> cont (s1, info))
 
-let assign_serial_to_vars_hes = Muapprox_prover.Check_formula_equality.assign_serial_to_vars_hes
-let check_equal_hes = Muapprox_prover.Check_formula_equality.check_equal_hes
+let assign_serial_to_vars_hes = Manipulate.Check_formula_equality.assign_serial_to_vars_hes
+let check_equal_hes = Manipulate.Check_formula_equality.check_equal_hes
 let show_debug_context = Muapprox_prover.show_debug_context
 let show_debug_contexts = Muapprox_prover.show_debug_contexts
 let abbrev_variable_numbers_hes = Muapprox_prover.Abbrev_variable_numbers.abbrev_variable_numbers_hes

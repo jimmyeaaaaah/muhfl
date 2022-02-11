@@ -93,6 +93,16 @@ let take_n n l =
   List.fold_left (fun (ll, i) e -> if i < n then (e::ll, i + 1) else (ll, i + 1)) ([], 0) l
   |> fst |> List.rev
 
+let is_equivalent_formula form1 form2 =
+  let form1 = Check_formula_equality.assign_serial_to_vars_formula form1 in
+  print_endline "form1";
+  print_endline @@ Hflmc2_util.fmt_string (Print_syntax.hflz (fun p -> Print_syntax.simple_ty_ p)) form1;
+  let form2 = Check_formula_equality.assign_serial_to_vars_formula form2 in
+  print_endline "form2";
+  print_endline @@ Hflmc2_util.fmt_string (Print_syntax.hflz (fun p -> Print_syntax.simple_ty_ p)) form2;
+  let res, _ = Check_formula_equality.check_equal form1 form2 in
+  res
+
 let get_constant_substitution occurrences parameters =
   let occurrences =
     List.map
@@ -127,6 +137,7 @@ let get_constant_substitution occurrences parameters =
       op in
   let to_node arg =
     Some (Var {arg with ty=Type.TyBool ()}) in
+  (* create a dependency graph by creating edges from parameters to formulas passed to them *)
   let g = Mygraph2.init () in
   List.iter
     (fun (_p, (lss, args)) ->
@@ -140,12 +151,14 @@ let get_constant_substitution occurrences parameters =
                 if IdSet.exists all_params ~f:(Id.eq x) then
                   Mygraph2.add_edge g (to_node arg) (Some (Var x))
                 else
+                  (* the formula is a variable which is not a parameter *)
                   Mygraph2.add_edge g (to_node arg) None
               end
               | _ -> begin
                 if IdSet.is_empty (fvs form) then
                   Mygraph2.add_edge g (to_node arg) (Some form)
                 else
+                  (* the formula contains free variables => cannot be inlined *)
                   Mygraph2.add_edge g (to_node arg) None
               end
             )
@@ -159,25 +172,22 @@ let get_constant_substitution occurrences parameters =
         p,
         List.map
           (fun param ->
-            let froms = Mygraph2.reachable_nodes_from g (to_node param) in
-            if List.exists ((=)None) froms then None
+            let forms = Mygraph2.reachable_nodes_from g (to_node param) in
+            if List.exists ((=)None) forms then None (* some occurrence of the parameter cannot be inlined *)
             else begin
-              if List.exists (fun a -> a = None) froms
-              then None
-              else begin
-                let froms =
-                  List.filter_map
-                    (fun a ->
-                      match a with
-                      | Some (Var _) -> None
-                      | Some t -> Some t
-                      | None -> assert false)
-                    froms in
-                match froms with
-                | [x] -> Some x
-                | [] -> None
-                | _ -> None
-              end
+              let forms =
+                List.filter_map
+                  (fun a ->
+                    match a with
+                    | Some (Var _) -> None (* other parameter *)
+                    | Some t -> Some t
+                    | None -> assert false)
+                  forms in
+              let forms = Hflmc2_util.remove_duplicates is_equivalent_formula forms in
+              match forms with
+              | [x] -> Some x (* only one formula is passed to the parameter *)
+              | [] -> None
+              | _ -> None
             end
           )
           params
@@ -299,7 +309,9 @@ let substitute_occurrences hes subst =
   decompose_entry_rule rules
   
 let run hes =
+  (* list of pairs of predicate and occurrence *)
   let occurrences = get_occurrences hes in
+  (* list of pairs of predicate and parameter *)
   let parameters =
     merge_entry_rule hes
     |> List.map
