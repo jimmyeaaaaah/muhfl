@@ -178,3 +178,4 @@ let remove_disjunctions = Manipulate.Remove_disjunctions.convert
 let constant_propagation =  Manipulate.Constant_propagation.run
 let simplify_if_condition = Manipulate.Simplify_if_condition.run
 let mufu_transform = MuFU_core.transform
+let add_nu_level_extra_arguments = Manipulate.Add_nu_level_extra_arguments.run

@@ -467,3 +467,69 @@ let check_thflz2_type rules =
       assert (var.Id.ty = ty);
     )
     rules
+
+let rec to_hflz_ty ty =
+  match ty with
+  | TBool -> Type.TyBool ()
+  | TFunc (argtys, ty) ->
+    let argtys = List.map (fun (argty, _) -> to_hflz_argty argty) argtys in
+    let ty = to_hflz_ty ty in
+    let rec go_argtys bodyty argtys =
+      match argtys with
+      | ty::tys -> Type.TyArrow ((Id.gen ty), go_argtys bodyty tys)
+      | [] -> bodyty
+    in
+    go_argtys ty argtys
+  | _ -> assert false
+and to_hflz_argty ty =
+  match ty with
+  | TInt -> Type.TyInt
+  | TVar _ -> assert false
+  | _ -> Type.TySigma (to_hflz_ty ty)
+
+let rec to_hflz body =
+  match body with
+  | Bool b -> Hflz.Bool b
+  | Var v -> Hflz.Var {v with ty = to_hflz_ty v.ty }
+  | Or (p1, p2) -> Hflz.Or (to_hflz p1, to_hflz p2)
+  | And (p1, p2) -> Hflz.And (to_hflz p1, to_hflz p2)
+  | Abs (xs, p, _) ->
+    let rec go_abs p xs =
+      match xs with
+      | x::xs -> Hflz.Abs ({x with ty=to_hflz_argty x.Id.ty}, go_abs p xs)
+      | [] -> p
+    in
+    let p = to_hflz p in
+    go_abs p xs
+  | Forall (x, p) ->
+    Forall ({x with ty=Type.TyInt}, to_hflz p)
+  | Exists (x, p) ->
+    Exists ({x with ty=Type.TyInt}, to_hflz p)
+  | App (p, xs) ->
+    let rec go_app p xs =
+      match xs with
+      | x::xs -> Hflz.App (go_app p xs, x)
+      | [] -> p
+    in
+    let p = to_hflz p in
+    let xs = List.map to_hflz xs in
+    go_app p (List.rev xs)
+  | Arith a -> Hflz.Arith (go_arith a)
+  | Pred (p, as') -> Hflz.Pred (p, List.map go_arith as')
+and go_arith a =
+  match a with
+  | Int i -> Int i
+  | Var v -> Var {v with ty=`Int}
+  | Op (op, as') -> Op (op, List.map go_arith as')
+  
+let to_hes rules =
+  List.map
+    (fun {var; fix; body} ->
+      let var = {var with ty = to_hflz_ty var.ty} in
+      let body = to_hflz body in
+      let fix = match fix with
+        | Least -> Fixpoint.Least
+        | Greatest -> Fixpoint.Greatest in
+      {Hflz.var; fix; body}
+    )
+    rules

@@ -3,6 +3,7 @@ module Fixpoint = Hflmc2_syntax.Fixpoint
 module Formula = Hflmc2_syntax.Formula
 module IdSet = Hflmc2_syntax.IdSet
 module Eliminate_unused_argument = Eliminate_unused_argument
+module Add_nu_level_extra_arguments = Add_nu_level_extra_arguments
 
 open Hflz_typecheck
 open Hflz
@@ -272,7 +273,23 @@ let get_occuring_arith_terms id_type_map phi =
   in
   go_hflz phi |> List.map fst
 
-let get_guessed_terms id_type_map arg_terms scoped_variables id_ho_map =
+let get_guessed_terms
+    (id_type_map : (unit Id.t, Hflz_util.variable_type, Hflmc2_syntax.IdMap.Key.comparator_witness) Base.Map.t)
+    arg_terms
+    scoped_variables
+    (id_ho_map : ('a Id.t * [ `Int ] Id.t) list) =
+  log_string "[get_guessed_terms] arg_terms";
+  log_string @@
+    Hflmc2_util.show_list (fun term -> Print_syntax.show_hflz term) arg_terms;
+  log_string "[get_guessed_terms] id_type_map";
+  log_string @@
+    (Hflmc2_syntax.IdMap.fold
+      id_type_map
+      ~init:[]
+      ~f:(fun ~key ~data acc -> (key,data)::acc)
+    |> Hflmc2_util.show_list (fun (k, v) -> Id.to_string k ^ ": " ^ Hflz_util.show_variable_type v));
+  log_string "[get_guessed_terms] id_ho_map";
+  log_string @@ Hflmc2_util.show_list (fun (var_obj, var_arith) -> Id.to_string var_obj ^ ": " ^ Id.to_string var_arith) id_ho_map;
   let open Hflmc2_syntax in
   let all_terms =
     (List.map (get_occuring_arith_terms id_type_map) arg_terms |> List.concat) @
@@ -429,6 +446,7 @@ let encode_body_exists_formula_sub new_pred_name_cand coe1 coe2 hes_preds hfl (i
           )
           id_type_map
         |> List.flatten in
+      log_string "id_type_map' (exists)";
       log_string @@ Hflmc2_util.show_list (fun (t, id) -> "(" ^ t.Id.name ^ ", " ^ id.Id.name ^ ")") id_type_map';
       let guessed_terms =
         get_guessed_terms id_type_map [hfl] (if use_all_scoped_variables then env else []) (id_ho_map @ id_type_map')
@@ -691,7 +709,7 @@ let replace_occurences
     (scoped_rec_tvars : ('a Id.t * 'b Id.t) list)
     (rec_tvars : ('a Id.t * unit Type.ty Type.arg Id.t) list)
     (rec_lex_tvars : ('a Type.arg Id.t * 'a Type.arg Id.t list) list)
-    id_type_map
+    (id_type_map : (unit Id.t, Hflz_util.variable_type, Hflmc2_syntax.IdMap.Key.comparator_witness) Base.Map.t)
     use_all_scoped_variables
     id_ho_map
     (fml : 'a Hflz.t) : 'a Hflz.t =
@@ -721,6 +739,7 @@ let replace_occurences
           assoc
         end else []) in
       let formula_type_terms = List.map argty_to_var formula_type_ids in
+      
       let guessed_conditions =
         let guessed_terms =
           get_guessed_terms id_type_map (apps @ formula_type_terms) (if use_all_scoped_variables then env else []) id_ho_map in
