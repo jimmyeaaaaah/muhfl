@@ -361,7 +361,7 @@ def main(benchmark):
     
     os.system("paste " + OUTPUT_FILE_NAME + '_table.txt' + ' ' + OUTPUT_FILE_NAME + "_iter_count.txt > " + OUTPUT_FILE_NAME + "_summary.txt")
     
-    # result,time,file,prove_iter_count,disprove_iter_count,prover_t_count,prover_s_count,disprover_t_count,disprover_s_count,prover_elapsed_all,disprover_elapsed_all,prover_will_try_weak_subtype,disprover_will_try_weak_subtype,is_nu_hflz,prover_elapsed_all_string,disprover_elapsed_all_string
+    # result,time,file,prove_iter_count,disprove_iter_count,prover_t_count,prover_s_count,disprover_t_count,disprover_s_count,prover_elapsed_all,disprover_elapsed_all,prover_will_try_weak_subtype,disprover_will_try_weak_subtype,is_nu_hflz,prover_elapsed_all_string,disprover_elapsed_all_string,prover_hflz_size,prover_hflz_inlined_size,prover_hflz_pred_num,prover_hflz_inlined_pred_num,disprover_hflz_size,disprover_hflz_inlined_size,disprover_hflz_pred_num,disprover_hflz_inlined_pred_num,prover_solved_by,disprover_solved_by,prover_iter_count,prover_hflz_size,prover_hflz_inlined_size,prover_hflz_pred_num,prover_hflz_inlined_pred_num,disprover_iter_count,disprover_hflz_size,disprover_hflz_inlined_size,disprover_hflz_pred_num,disprover_hflz_inlined_pred_num,m_prover_t_count,m_prover_s_count,m_disprover_t_count,m_disprover_s_count
     print("time: " + os.path.join(os.getcwd(), OUTPUT_FILE_NAME + "_summary.txt"))
     print("list: " + os.path.join(os.getcwd(), lists_path))
     print("full: " + os.path.join(os.getcwd(), "0bench_out_full.txt"))
