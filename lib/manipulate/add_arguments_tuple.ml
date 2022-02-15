@@ -4,7 +4,8 @@ open Hflmc2_syntax
 let log_src = Logs.Src.create "Pa_tuple"
 module Log = (val Logs.src_log @@ log_src)
 
-(* let log_string = Hflz_util.log_string Log.info *)
+let log_string = Hflz_util.log_string Log.info
+let log_warn = Hflz_util.log_string Log.warn
 
 type 'ty thflz2 =
   | Bool   of bool
@@ -289,9 +290,18 @@ let rec convert_ty ty =
         | EFVar _ -> assert false
       end
       (* TODO: 型が未確定のときの処理 *)
-      (* | T.TVar _ -> print_endline "conver_ty: tvar"; TBool
-      | T.TBool -> print_endline "conver_ty: tbool"; TBool *)
-      | _ -> assert false
+      (* | _ -> assert false *)
+      | T.TBool ->
+        log_warn "conver_ty: tbool (no applications?)";
+        let argtys = List.map (fun argty -> convert_ty argty, T.dummy_use_flag) argtys |> List.rev in 
+        let bodyty = convert_ty ty in
+        TFunc (argtys, bodyty)
+      | T.TVar _ ->
+        failwith "conver_ty: tvar (not used variable?)"
+        (* ; let argtys = List.map (fun argty -> convert_ty argty, T.dummy_use_flag) argtys |> List.rev in 
+        let bodyty = convert_ty ty in
+        TFunc (argtys, bodyty) *)
+      | T.TInt -> failwith "convert_ty: TInt"
     in
     go [] ty
   end
@@ -350,7 +360,14 @@ let to_thflz2 rules =
           end
           | _ -> assert false
         end
-        | _ -> assert false
+        | _ ->
+          let p = to_thflz2_sub phi in
+          log_string "ptype";
+          log_string @@ T.show_ptype ty_abs;
+          let ty_abs = convert_ty ty_abs in
+          log_string "ptype2";
+          log_string @@ show_ptype2 ty_abs;
+          Abs (List.rev args, p, ty_abs)
       in
       go [] phi
     end
