@@ -384,6 +384,22 @@ let rec to_tree seq f b = match seq with
   | x::xs -> f x (to_tree xs f b)
 
 
+let to_id_ho_map_from_id_type_map id_type_map =
+  Hflmc2_syntax.IdMap.fold
+    ~init:[]
+    ~f:(fun ~key ~data acc ->
+      match data with
+      | Hflz_util.VTHigherInfo xs_opt -> begin
+        match xs_opt with
+        | Some (k, xs) ->
+          assert (Id.eq k key);
+          ((List.map (fun v -> (v, {key with ty = `Int})) xs)::acc)
+        | None -> acc
+      end
+      | VTVarMax _ -> acc
+    )
+    id_type_map
+  |> List.flatten
   
 let encode_body_exists_formula_sub new_pred_name_cand coe1 coe2 hes_preds hfl (id_type_map : (unit Id.t, Hflz_util.variable_type, Hflmc2_syntax.IdMap.Key.comparator_witness) Base.Map.t) id_ho_map use_all_scoped_variables env = 
   let open Type in
@@ -430,22 +446,7 @@ let encode_body_exists_formula_sub new_pred_name_cand coe1 coe2 hes_preds hfl (i
     let guessed_conditions =
       log_string @@ "[encode_body_exists_formula_sub.guessed_conditions] body: " ^ show_hflz hfl;
       log_string @@ Hflmc2_util.show_list (fun (t, id) -> "(" ^ t.Id.name ^ ", " ^ id.Id.name ^ ")") id_ho_map;
-      let id_type_map' =
-        Hflmc2_syntax.IdMap.fold
-          ~init:[]
-          ~f:(fun ~key ~data acc ->
-            match data with
-            | VTHigherInfo xs_opt -> begin
-              match xs_opt with
-              | Some (k, xs) ->
-                assert (Id.eq k key);
-                ((List.map (fun v -> (v, {key with ty = `Int})) xs)::acc)
-              | None -> acc
-            end
-            | VTVarMax _ -> acc
-          )
-          id_type_map
-        |> List.flatten in
+      let id_type_map' = to_id_ho_map_from_id_type_map id_type_map in
       log_string "id_type_map' (exists)";
       log_string @@ Hflmc2_util.show_list (fun (t, id) -> "(" ^ t.Id.name ^ ", " ^ id.Id.name ^ ")") id_type_map';
       let guessed_terms =
@@ -741,8 +742,9 @@ let replace_occurences
       let formula_type_terms = List.map argty_to_var formula_type_ids in
       
       let guessed_conditions =
+        let id_type_map' = to_id_ho_map_from_id_type_map id_type_map in
         let guessed_terms =
-          get_guessed_terms id_type_map (apps @ formula_type_terms) (if use_all_scoped_variables then env else []) id_ho_map in
+          get_guessed_terms id_type_map (apps @ formula_type_terms) (if use_all_scoped_variables then env else []) (id_ho_map @ id_type_map') in
         get_guessed_conditions coe1 coe2 guessed_terms in
       let arg_pvars =
         try
