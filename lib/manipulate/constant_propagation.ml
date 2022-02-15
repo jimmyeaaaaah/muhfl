@@ -95,11 +95,11 @@ let take_n n l =
 
 let is_equivalent_formula form1 form2 =
   let form1 = Check_formula_equality.assign_serial_to_vars_formula form1 in
-  print_endline "form1";
-  print_endline @@ Hflmc2_util.fmt_string (Print_syntax.hflz (fun p -> Print_syntax.simple_ty_ p)) form1;
+  (* print_endline "form1";
+  print_endline @@ Hflmc2_util.fmt_string (Print_syntax.hflz (fun p -> Print_syntax.simple_ty_ p)) form1; *)
   let form2 = Check_formula_equality.assign_serial_to_vars_formula form2 in
-  print_endline "form2";
-  print_endline @@ Hflmc2_util.fmt_string (Print_syntax.hflz (fun p -> Print_syntax.simple_ty_ p)) form2;
+  (* print_endline "form2";
+  print_endline @@ Hflmc2_util.fmt_string (Print_syntax.hflz (fun p -> Print_syntax.simple_ty_ p)) form2; *)
   let res, _ = Check_formula_equality.check_equal form1 form2 in
   res
 

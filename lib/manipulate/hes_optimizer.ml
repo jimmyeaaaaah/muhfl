@@ -18,6 +18,13 @@ let show_hes s hes =
     |> Hflz.merge_entry_rule
     |> Print_syntax.show_hes ~readable:true);
   hes
+
+let log_hes s hes =
+  log_string s;
+  log_string (hes
+    |> Hflz.merge_entry_rule
+    |> Print_syntax.show_hes ~readable:true);
+  hes
   
 let get_pvar_called_counts hes =
   let preds, graph = Hflz_util.get_dependency_graph hes in
@@ -412,7 +419,7 @@ let inline_bottom_sub hes =
       end
     in
     let results = inline_sub results in
-    Hflz.decompose_entry_rule results |> show_hes "inline_bottom_sub(after):", !inlined
+    Hflz.decompose_entry_rule results |> log_hes "inline_bottom_sub(after):", !inlined
   end
 
 let rec inline_bottom hes =
@@ -529,7 +536,7 @@ let eliminate_unused_bindings_sub phi =
 
 let eliminate_unused_bindings hes =
   hes
-  |> show_hes "eliminate_unused_bindings (before):"
+  |> log_hes "eliminate_unused_bindings (before):"
   |> Hflz.merge_entry_rule
   |> List.map
     (fun rule ->
@@ -537,7 +544,7 @@ let eliminate_unused_bindings hes =
         Hflz.body = eliminate_unused_bindings_sub rule.Hflz.body }
     )
   |> Hflz.decompose_entry_rule
-  |> show_hes "eliminate_unused_bindings (after):"
+  |> log_hes "eliminate_unused_bindings (after):"
 
 let simplify (hes : Type.simple_ty Hflz.hes)=
   let hes = InlineExpansion.optimize hes in
@@ -554,34 +561,34 @@ let rec simplify_all hes =
 let simplify_agg trivial_only hes =
   let go hes =
     hes
-    |> show_hes "simplify_agg (a0)"
+    |> log_hes "simplify_agg (a0)"
     |> InlineExpansion.inline_non_recursive_variables false trivial_only
-    |> show_hes "simplify_agg (a1)"
+    |> log_hes "simplify_agg (a1)"
     |> beta_hes
-    |> show_hes "simplify_agg (a2)"
+    |> log_hes "simplify_agg (a2)"
     |> simple_partial_evaluate_hes
-    |> show_hes "simplify_agg (a3)"
+    |> log_hes "simplify_agg (a3)"
     |> evaluate_trivial_boolean
-    |> show_hes "simplify_agg (a4)"
+    |> log_hes "simplify_agg (a4)"
     |> eliminate_unused_bindings
-    |> show_hes "simplify_agg (a5)"
+    |> log_hes "simplify_agg (a5)"
     |> evaluate_trivial_fixpoints
-    |> show_hes "simplify_agg (a6)"
+    |> log_hes "simplify_agg (a6)"
   in
   hes
-  |> show_hes "simplify_agg (1)"
+  |> log_hes "simplify_agg (1)"
   |> go |> go
-  |> show_hes "simplify_agg (2)"
+  |> log_hes "simplify_agg (2)"
   |> inline_bottom |> go
-  |> show_hes "simplify_agg (3)"
+  |> log_hes "simplify_agg (3)"
   |> simplify_non_deterministic_branch |> go
-  |> show_hes "simplify_agg (4)"
+  |> log_hes "simplify_agg (4)"
   |> eliminate_unreachable_predicates
-  |> show_hes "simplify_agg (5)"
+  |> log_hes "simplify_agg (5)"
   |> Eliminate_unused_argument.eliminate_unused_argument
-  |> show_hes "simplify_agg (6)"
+  |> log_hes "simplify_agg (6)"
   |> Constant_propagation.run |> go
-  |> show_hes "simplify_agg (7)"
+  |> log_hes "simplify_agg (7)"
   |> Constant_propagation.run |> go
-  |> show_hes "simplify_agg (8)"
+  |> log_hes "simplify_agg (8)"
   
