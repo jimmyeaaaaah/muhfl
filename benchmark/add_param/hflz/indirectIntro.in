@@ -1,5 +1,16 @@
 %HES
 Sentry =v ∀x_715. F x_715 (\x_710. x_710 0 (\x_703. true)).
+APP i h v u_4 k_app_48 =u
+  (i < 0 \/ APP (i - 1) h v 0 k_app_48)
+  /\ (i >= 0 \/ h v (\x_697. x_697 0 k_app_48)).
+F x_2 k_f_129 =u
+  (x_2 <= 0 \/ (∀x_700. k_f_129 (APP x_700 F (x_2 - 1))))
+  /\ (x_2 > 0 \/ k_f_129 (\u_716. \k_g_717. k_g_717 0)).
+
+/*
+/* arguments are swapped: solvable */
+%HES
+Sentry =v ∀x_715. F x_715 (\x_710. x_710 0 (\x_703. true)).
 
 APP i v h u_4 k_app_48 =u
   (i < 0 \/ APP (i - 1) v h 0 k_app_48)
@@ -8,3 +19,59 @@ APP i v h u_4 k_app_48 =u
 F x_2 k_f_129 =u
   (x_2 <= 0 \/ (∀x_700. k_f_129 (APP x_700 (x_2 - 1) F)))
   /\ (x_2 > 0 \/ k_f_129 (\u_716. \k_g_717. k_g_717 0)).
+
+%ENV
+Sentry : bool[true].
+
+APP : recAPP57:int ->
+      ttttt58:int ->
+      i59:int ->
+      v60:int ->
+      (
+        t61:int ->
+        t62:int ->
+        (
+          t63:int ->
+          (
+            t64:int ->
+            t65:int ->
+            (t66:int -> bool[true]) ->
+            bool[t62 <= v60 /\ i59 + -1 * recAPP57 < -1 /\ recAPP57 > 0]
+          ) ->
+          bool[true]
+        ) ->
+        bool[t62 <= v60 /\ i59 + -1 * recAPP57 < -1 /\ recAPP57 > 0]
+      ) ->
+      ttttt271:int ->
+      u72:int ->
+      (t73:int -> bool[true]) ->
+      bool[i59 + -1 * recAPP57 < -1 /\ recAPP57 > 0].
+    
+F : recF131:int ->
+    ttttt132:int ->
+    x133:int ->
+    (
+      t134:int ->
+      (
+        t135:int ->
+        t136:int ->
+        (
+          t137:int -> bool[true]
+        ) ->
+        bool[
+          recF131 >= 2 /\
+          recF131 >= 2 + -1 * x133 /\
+          recF131 >= 2 + x133 /\
+          ttttt132 >= 1 /\
+          t135 >= 1 /\
+          t136 = 0
+            \/ x133 + -1 * recF131 <= -2 /\ recF131 >= 2
+            \/ x133 + -1 * recF131 <= -3 /\ recF131 >= 3
+            \/ x133 + -1 * recF131 <= -3 /\ recF131 >= 3 /\ -1 * t136 + -1 * recF131 <= -2 /\ t136 + -1 * recF131 <= -2
+            \/ x133 + -1 * recF131 <= -4 /\ recF131 >= 4 /\ -1 * t136 + -1 * recF131 <= -3 /\ t136 + -1 * recF131 <= -3
+        ]
+      ) ->
+      bool[x133 + -1 * recF131 < -1 /\ recF131 > 1]
+    ) ->
+    bool[x133 + -1 * recF131 < -1 /\ recF131 > 1].
+*/
