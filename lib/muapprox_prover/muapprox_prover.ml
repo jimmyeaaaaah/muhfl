@@ -855,18 +855,20 @@ let get_next_approx_parameter ?param ?(iter_count=0) with_add_arguments =
         (1, 8,  2, 1, 1); (* 7 *)
         (1, 8,  2, 1, 2); (* 8 *)
          *)
-        (1, 1, 1, 1, 1);
-        (1, 1, 1, 1, 2);
-        (1, 8, 1, 1, 1);
-        (1, 8, 1, 1, 2);
+        (1, 2, 1, 1, 1);
+        (1, 2, 1, 1, 2);
+        (* (1, 8, 1, 1, 1);
+        (1, 8, 1, 1, 2); *)
       ]
     else
       [
-        (1, 1,  0, 0, 1);
+        (1, 2, 0, 0, 1);
+        (1, 2, 0, 0, 2);
+        (* (1, 1,  0, 0, 1);
         (1, 1,  0, 0, 2);
         (1, 8,  0, 0, 1);
         (2, 16, 0, 0, 1);
-        (2, 16, 0, 0, 2);
+        (2, 16, 0, 0, 2); *)
       ] in
   match List.nth_opt coeffs iter_count with
   | Some (coe1, coe2, add_arg_coe1, add_arg_coe2, lexico_pair_number) ->
