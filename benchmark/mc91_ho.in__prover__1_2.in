@@ -1,0 +1,32 @@
+/* not solvable */
+%HES
+Sentry =v
+  ∀x. 
+   ∀recMC. 
+      recMC < 20 + 1 * x \/ recMC < 20 + (-1) * x \/ recMC < 20
+      \/ MC recMC x (\k. k x) (\_x. \x. true).
+
+MC recMC _n fn k_mc =v
+  recMC > 0
+  /\ fn
+      (\x. 
+           (x <= 100 \/ fn (\x2. k_mc _n (\k_sub_int. k_sub_int (x2 - 10))))
+        /\ (x > 100  \/ fn (\x2. MC (recMC - 1) _n (\k_add_int. k_add_int (x2 + 11)) (\_r. \r. MC (recMC - 1) _r r k_mc)))).
+
+
+/*
+/* not solvable */
+%HES
+Sentry =v
+  ∀x. 
+   ∀recMC. 
+      recMC < 20 + 1 * x \/ recMC < 20 + (-1) * x \/ recMC < 20
+      \/ MC recMC x (\k. k x) (\_x. \x. true).
+
+MC recMC _n fn k_mc =v
+  recMC > 0
+  /\ fn
+      (\x. 
+           (x <= 100 \/ fn (\x2. k_mc (_n - 10) (\k_sub_int. k_sub_int (x2 - 10))))
+        /\ (x > 100  \/ fn (\x2. MC (recMC - 1) (_n + 11) (\k_add_int. k_add_int (x2 + 11)) (\_r. \r. MC (recMC - 1) _r r k_mc)))).
+*/
