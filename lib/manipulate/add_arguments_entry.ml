@@ -2,36 +2,6 @@ open Hflmc2_syntax
 module Env = Env_no_value
 open Add_arguments_definition
 
-let decompose_ors x phi =
-  let rec to_ors phi = match phi with
-    | Hflz.Or (p1, p2) -> to_ors p1 @ to_ors p2
-    | _ -> [phi]
-  in
-  match phi with
-  | Hflz.Or (predicates, body) -> begin
-    let ors = to_ors predicates in
-    let _, body = Hflz_util.beta IdMap.empty body in
-    if
-      (not @@ IdSet.exists ~f:(Id.eq x) (Hflz.fvs body)) &&
-      List.for_all
-        (fun p -> match p with
-          | Hflz.Pred (op, [Var x'; a]) when (op = Le || op = Lt) && Id.eq x' x -> begin
-            match a with
-            | Int _ -> true
-            | Op (Add, [Op (Mult, [n; f]); Int _]) -> begin
-              IdSet.is_empty (Hflz.fvs (Arith n)) &&
-              (not @@ IdSet.exists ~f:(Id.eq x) (Hflz.fvs (Arith f)))
-            end
-            | _ -> false
-          end
-          | _ -> false
-        )
-        ors
-    then Some (predicates, body)
-    else None
-  end
-  | _ -> None
-
 let eliminate_unused_universal_quantifiers_for_extra_arguments body =
   let s_len = String.length Add_arguments_adding.extra_arg_name in
   let rec go body = match body with
@@ -39,7 +9,7 @@ let eliminate_unused_universal_quantifiers_for_extra_arguments body =
       let result =
         if String.length x.Id.name >= s_len
             && String.sub x.Id.name 0 s_len = Add_arguments_adding.extra_arg_name then begin
-          match decompose_ors x body with
+          match Hflz_util.decompose_ors x body with
           | Some (_simple_ors, body) ->
             Some (go body)
           | None -> None

@@ -365,3 +365,40 @@ let get_hflz_size hes =
   |> Hflz.merge_entry_rule
   |> List.map (fun {body;_} -> get_hflz_size_sub body)
   |> sum
+
+let extract_bound_predicates x phi =
+  let rec to_ors phi = match phi with
+    | Hflz.Or (p1, p2) -> to_ors p1 @ to_ors p2
+    | _ -> [phi]
+  in
+  let extract_pred p =
+    match p with
+    | Hflz.Pred (op, [Var x'; a]) when (op = Le || op = Lt) && Id.eq x' x -> begin
+      match a with
+      | Int _ -> Some a
+      | Op (Add, [Op (Mult, [n; f]); Int _]) | Op (Add, [Int _; Op (Mult, [n; f])]) -> begin
+        if IdSet.is_empty (Hflz.fvs (Arith n)) &&
+            (not @@ IdSet.exists ~f:(Id.eq x) (Hflz.fvs (Arith f))) then
+          Some a
+        else None
+      end
+      | _ -> None
+    end
+    | _ -> None
+  in
+  let ors = to_ors phi in
+  let preds = List.filter_map extract_pred ors in
+  if List.length ors = List.length preds then Some preds else None
+
+let decompose_ors x phi =
+  match phi with
+  | Hflz.Or (predicates, body) -> begin
+    let preds = extract_bound_predicates x predicates in
+    match preds with
+    | Some preds ->
+      let _, body = beta IdMap.empty body in
+      if (not @@ IdSet.exists ~f:(Id.eq x) (Hflz.fvs body)) then Some (preds, body)
+      else None
+    | None -> None
+  end
+  | _ -> None
