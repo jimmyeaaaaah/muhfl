@@ -1,37 +1,80 @@
-/* valid in 95 sec with hoice */
+/* solvable with hoice in 485.7 sec */
 %HES
 Sentry =v
-  ∀m. 
-   ∀n. 
-    ∀recF.
-      recF < 1 + 2 * m \/ recF < 1 + (-2) * m \/ recF < 1 + 2 * n \/ recF < 1 + (-2) * n \/ recF < 1
-      \/ F recF m n (\u. \k_main. k_main m) (\u. \k_main. k_main n) (\x. true).
+  ∀m_1039. 
+   ∀n_1040. 
+    ∀sssss_1041. 
+     sssss_1041 < 1 * m_1039 + 0 \/ sssss_1041 < -1 * m_1039 + 0 \/ sssss_1041 < 1 * n_1040 + 0
+     \/ sssss_1041 < -1 * n_1040 + 0
+     \/ sssss_1041 < 0
+     \/ (∀recXX_1042. 
+             recXX_1042 < 2 + 1 * m_1039
+          \/ recXX_1042 < 2 + 1 * n_1040
+          \/ recXX_1042 < 2 + -1 * m_1039
+          \/ recXX_1042 < 2 + -1 * n_1040
+          \/ recXX_1042 < 2
+          \/ XX_1038 recXX_1042 m_1039 n_1040 sssss_1041 0 (\k_1044. k_1044 m_1039) (\k_1043. k_1043 n_1040)).
 
-CHECK f k_check =v f 0 (\x. (x <= 0 \/ k_check 1) /\ (x > 0 \/ k_check 0)).
+F_1037 recF_1045 _m _n fm_1046 fn_1047 =v
+  recF_1045 > 0
+  /\ fm_1046
+      (\x_1048. 
+        (x_1048 <= 0
+         \/ fn_1047
+             (\x_1052. 
+               (x_1052 <= 0
+                \/ (∀r_1055. 
+                     (r_1055 <= 0
+                      \/ fm_1046
+                          (\x_1058. F_1037 (recF_1045 - 1) (_m - 1) _n (\k_1059. k_1059 (x_1058 - 1)) fn_1047))
+                     /\ (r_1055 > 0
+                         \/ r_1055 > 0
+                            \/ fn_1047
+                                (\x_1056. 
+                                  F_1037 (recF_1045 - 1) _m (_n - 1) fm_1046 (\k_1057. k_1057 (x_1056 - 1))))))
+               /\ (x_1052 > 0
+                   \/ fm_1046
+                       (\x_1053. F_1037 (recF_1045 - 1) (_m - 1) _n (\k_1054. k_1054 (x_1053 - 1)) fn_1047))))
+        /\ (x_1048 > 0
+            \/ fn_1047
+                (\x_1049. 
+                  x_1049 <= 0
+                  \/ fn_1047
+                      (\x_1050. F_1037 (recF_1045 - 1) _m (_n - 1) fm_1046 (\k_1051. k_1051 (x_1050 - 1)))))).
 
-F recF _m _n fm fn k_f =v
-  recF > 0
-  /\ CHECK fm
-      (\bm. 
-        CHECK fn
-         (\bn. 
-           ∀r. 
-            (r <= 0 \/ bm != 1 \/ PRED fm (\x. F (recF - 1) (_m - 1) _n x fn k_f))
-            /\ (r > 0 /\ bm = 1
-                \/ (r > 0 \/ bn != 1 \/ PRED fn (\x. F (recF - 1) _m (_n - 1) fm x k_f))
-                   /\ (r <= 0 /\ bn = 1 \/ k_f 0)))).
-PRED fx k_pred =v fx 0 (\x. k_pred (\u. \k_pred2. k_pred2 (x - 1))).
+XX_1038 recXX_1060 _m _n ttttt_1061 flag_1062 fm_1063 fn_1064 =v
+  recXX_1060 > 0
+  /\ (flag_1062 != 1
+      \/ ((∀recF_1067. 
+              recF_1067 < 1 + 2 * ttttt_1061 \/ recF_1067 < 1 + -2 * ttttt_1061 \/ recF_1067 < 1
+          \/ F_1037 recF_1067 _m _n fm_1063 fn_1064)))
+  /\ (flag_1062 = 1
+      \/ (∀sssss_1065. 
+           sssss_1065 < 1 * ttttt_1061 + 0 \/ sssss_1065 < -1 * ttttt_1061 + 0 \/ sssss_1065 < 0
+           \/ XX_1038 (recXX_1060 - 1) _m _n sssss_1065 1 fm_1063 fn_1064)).
 
 %ENV
-F : recF63:int ->
-     _m64:int ->
-      _n65:int ->
-       (t66:int -> (t67:int -> bool[-1 * t67 + _m64 = 0]) -> bool[recF63 >= 1]) ->
-        (t70:int ->
-          (t71:int ->
-            bool[-2 * t71 + 2 * recF63 + 2 * _m64 >= 2 /\ 2 * recF63 + 2 * _m64 >= 2
-                 /\ -2 * t71 + 2 * recF63 + -2 * _m64 >= 2
-                 /\ 2 * recF63 + _m64 * -2 >= 2]) ->
-           bool[recF63 >= 1]) ->
-         (t74:int -> bool[recF63 >= 1]) -> bool[recF63 >= 1].
-         
+F_1037 : recF_104550:int ->
+          _m51:int ->
+           _n52:int ->
+            ((t53:int ->
+               bool[recF_104550 + -1 * t53 + -1 * _n52 >= 1 /\ recF_104550 + -1 * t53 >= 1]) ->
+              bool[recF_104550 >= 1]) ->
+             ((t56:int -> bool[t56 + -1 * _n52 = 0 /\ recF_104550 + -1 * t56 >= 1]) ->
+               bool[recF_104550 >= 1]) ->
+              bool[recF_104550 >= 1].
+XX_1038 : recXX_1060129:int ->
+           _m130:int ->
+            _n131:int ->
+             ttttt_1061132:int ->
+              flag_1062133:int ->
+               ((t134:int ->
+                  bool[-1 * t134 + 2 * ttttt_1061132 >= 0
+                       /\ -1 * t134 + -1 * _n131 + 2 * ttttt_1061132 >= 0]) ->
+                 bool[(recXX_1060129 >= 2 \/ recXX_1060129 + -1 * flag_1062133 = 0)
+                      /\ recXX_1060129 >= 1]) ->
+                ((t137:int -> bool[_n131 + -1 * t137 = 0 /\ -1 * t137 + 2 * ttttt_1061132 >= 0]) ->
+                  bool[(recXX_1060129 >= 2 \/ recXX_1060129 + -1 * flag_1062133 = 0)
+                       /\ recXX_1060129 >= 1]) ->
+                 bool[(recXX_1060129 >= 2 \/ recXX_1060129 + -1 * flag_1062133 = 0)
+                      /\ recXX_1060129 >= 1].
