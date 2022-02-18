@@ -1,6 +1,6 @@
 open Core
 
-type show_style = Asis_id | Abbrev_id
+type show_style = Asis_id | Abbrev_old_id | Abbrev_id
 
 let map_file_path path converter =
   let dir, base, ext =
@@ -33,16 +33,18 @@ let main filepath optimization agg show_style trivial_only_agg output_cp =
     if agg then Manipulate.Hes_optimizer.simplify_agg trivial_only_agg hes else hes in
   let hes =
     match show_style with
-    | Abbrev_id -> Muapprox.abbrev_variable_names hes
+    | Abbrev_old_id -> Muapprox.abbrev_variable_names hes
+    | Abbrev_id -> Muapprox.abbrev_variable_numbers_hes hes
     | Asis_id -> hes in
   let path2 = map_file_path filepath (fun (a, b, c) -> (a, b ^ "_simplified", c)) in
-  ignore @@ Muapprox.Manipulate.Print_syntax.MachineReadable.save_hes_to_file ~file:path2 ~without_id:(Stdlib.(=) show_style Abbrev_id) true hes;
+  ignore @@ Muapprox.Manipulate.Print_syntax.MachineReadable.save_hes_to_file ~file:path2 ~without_id:(Stdlib.(<>) show_style Asis_id) true hes;
   print_endline @@ "Simplified to " ^ path2
 
 let read_show_style = 
   Command.Arg_type.create (fun style ->
       match style with
       | "asis" -> Asis_id
+      | "abbrevold" -> Abbrev_old_id
       | "abbrev" -> Abbrev_id
       | _ -> failwith "style should be one of raw, escape, or abbrev")
   

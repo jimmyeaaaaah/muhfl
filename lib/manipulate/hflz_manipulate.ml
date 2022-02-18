@@ -4,6 +4,7 @@ module Formula = Hflmc2_syntax.Formula
 module IdSet = Hflmc2_syntax.IdSet
 module Eliminate_unused_argument = Eliminate_unused_argument
 module Add_nu_level_extra_arguments = Add_nu_level_extra_arguments
+module Abbrev_variable_numbers = Abbrev_variable_numbers
 
 open Hflz_typecheck
 open Hflz

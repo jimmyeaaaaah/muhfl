@@ -24,6 +24,17 @@ let log_hes s hes =
   log_string (hes
     |> Hflz.merge_entry_rule
     |> Print_syntax.show_hes ~readable:true);
+  let () =
+    match Logs.level () with
+    | Some (Logs.Info) | Some (Logs.Debug) -> begin
+      let hes' = Abbrev_variable_numbers.abbrev_variable_numbers_hes hes in
+      let path = s ^ ".tmp.in" in
+      ignore @@
+        try
+          Print_syntax.MachineReadable.save_hes_to_file ~file:path  ~without_id:true true hes'
+        with _ -> log_string @@ "Error when saving the file \"" ^ path ^ "\""; ""
+    end
+    | _ -> () in
   hes
   
 let get_pvar_called_counts hes =

@@ -192,7 +192,7 @@ module SolverCommon = struct
     
   let output_pre_debug_info hes debug_context path no_temp_files =
     let path' = 
-      let hes = Abbrev_variable_numbers.abbrev_variable_numbers_hes hes in
+      let hes = Manipulate.Abbrev_variable_numbers.abbrev_variable_numbers_hes hes in
       let file = Filename.basename debug_context.file ^ "__" ^ debug_context.mode ^ "__" ^ string_of_int debug_context.iter_count ^ ".in" in
       if not no_temp_files then
         Manipulate.Print_syntax.MachineReadable.save_hes_to_file ~file:file ~without_id:true true hes
@@ -360,7 +360,7 @@ module KatsuraSolver : BackendSolver = struct
       let path =
         if should_use_replacer then begin
           log_string "using replacer";
-          let hes = Abbrev_variable_numbers.abbrev_variable_numbers_hes hes in
+          let hes = Manipulate.Abbrev_variable_numbers.abbrev_variable_numbers_hes hes in
           let path = Manipulate.Print_syntax.MachineReadable.save_hes_to_file ~without_id:true true hes in
           let stdout_name = Hflmc2_util.gen_temp_filename "/tmp/" "_stdout.tmp" in
           let flag =

@@ -40,8 +40,8 @@ module Env = struct
       new_id, {new_id; old_id; number = 1; basename}::env
   
   let add env old_id =
-    let new_id, env = add_arg env (Manipulate.Hflz_util.lift_id old_id) in
-    (Manipulate.Hflz_util.unlift_id new_id, env)
+    let new_id, env = add_arg env (Hflz_util.lift_id old_id) in
+    (Hflz_util.unlift_id new_id, env)
     
   let lookup_by_old_id env v =
     List.find_opt (fun {old_id; _} -> Id.eq old_id v) env
@@ -54,7 +54,7 @@ let abbrev_variable_numbers (env : 'a Type.arg Env.t) (phi : 'a Hflz.t) =
     match phi with
     | Var v -> begin
       match Env.lookup_by_old_id env v with
-      | Some new_id -> Var (Manipulate.Hflz_util.unlift_id new_id)
+      | Some new_id -> Var (Hflz_util.unlift_id new_id)
       | None -> failwith @@ "(abbrev_variable_numbers) unbounded variable: " ^ Id.to_string v ^ " (" ^ string_of_int v.id ^ ")"
     end
     | Abs (x, p) ->
@@ -87,7 +87,7 @@ let abbrev_variable_numbers (env : 'a Type.arg Env.t) (phi : 'a Hflz.t) =
     | Op (op, a) -> Op (op, List.map (go_arith env) a)
   in
   (* log_string "abbrev_variable_numbers:";
-  log_string @@ Manipulate.Print_syntax.show_hflz phi; *)
+  log_string @@ Print_syntax.show_hflz phi; *)
   go env phi
     
   
@@ -109,7 +109,7 @@ let abbrev_variable_numbers_hes ((entry, rules) : Type.simple_ty Hflz.hes) =
         let body = abbrev_variable_numbers env rule.Hflz.body in
         {rule with body}
       ) rules in
-  Manipulate.Hflz_typecheck.type_check (entry, rules);
+  Hflz_typecheck.type_check (entry, rules);
   entry, rules
 
 (* 
