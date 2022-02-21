@@ -1,0 +1,17 @@
+paper/fair_termination_ho/koskinen-1_ho_2.in
+paper/fair_termination_ho/koskinen-2_ho.in
+paper/fair_termination_ho/koskinen-3-1_ho.in
+paper/termination/ackermann.in
+paper/termination/indirectIntro.in
+paper/termination/mc91.in
+paper/termination/quicksort.in
+paper/termination_ho/ackermann_ho.in
+paper/termination_ho/foldr_ho.in
+paper/termination_ho/indirectIntro_ho.in
+paper/termination_ho/loop2_ho.in
+paper/termination_ho/map_ho.in
+paper/termination_ho/mc91_ho.in
+paper/termination_ho/quicksort_ho.in
+paper/termination_ho/toChurch_ho.in
+paper/termination_ho/up_down_ho.in
+paper/termination_ho/x_plus_2_n_ho.in

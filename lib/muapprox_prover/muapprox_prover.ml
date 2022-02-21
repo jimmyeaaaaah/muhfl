@@ -4,7 +4,7 @@ module Status = Status
 module Solve_options = Solve_options
 module Hflz_mani = Manipulate.Hflz_manipulate
 module Check_formula_equality = Manipulate.Check_formula_equality
-module Abbrev_variable_numbers = Abbrev_variable_numbers
+module Abbrev_variable_numbers = Manipulate.Abbrev_variable_numbers
 module Mochi_solver = Mochi_solver
 
 open Async
@@ -16,6 +16,19 @@ module Log = (val Logs.src_log @@ log_src)
 
 let log_string = Manipulate.Hflz_util.log_string Log.info
 let message_string = Manipulate.Hflz_util.log_string Log.app
+
+type hflz_info_sub = {
+  hflz_size: int;
+  hflz_inlined_size: int;
+  hflz_pred_num: int;
+  hflz_inlined_pred_num: int;
+}
+
+type hflz_info = {
+  t_count: int;
+  s_count: int;
+  hflz_info_sub: hflz_info_sub;
+}
 
 type debug_context = {
   coe1: int;
@@ -31,12 +44,7 @@ type debug_context = {
   backend_solver: string option;
   default_lexicographic_order: int;
   exists_assignment: (unit Hflmc2_syntax.Id.t * int) list option;
-  t_count: int;
-  s_count: int;
-  hflz_size: int;
-  hflz_inlined_size: int;
-  hflz_pred_num: int;
-  hflz_inlined_pred_num: int;
+  hflz_info: hflz_info;
   elapsed_all: float;
   will_try_weak_subtype: bool;
   remove_disjunctions: bool;
@@ -61,8 +69,8 @@ let show_debug_context debug =
     ("add_arg_coe2", if debug.add_arg_coe1 = 0 then "-" else soi debug.add_arg_coe2);
     ("default_lexicographic_order", string_of_int debug.default_lexicographic_order);
     ("exists_assignment", Option.map (fun m -> "[" ^ ((List.map (fun (id, v) -> id.Hflmc2_syntax.Id.name ^ "=" ^ string_of_int v) m) |> String.concat "; ") ^ "]") debug.exists_assignment |> unwrap_or "-");
-    ("t_count", soi debug.t_count);
-    ("s_count", soi debug.s_count);
+    ("t_count", soi debug.hflz_info.t_count);
+    ("s_count", soi debug.hflz_info.s_count);
     ("elapsed_all", string_of_float debug.elapsed_all);
     ("solved_by", debug.solved_by);
     ("temp_file", debug.temp_file);
@@ -141,12 +149,12 @@ let output_post_merged_debug_info (dbg : debug_context) =
       ("file", `String dbg.file);
       
       ("iter_count", `Int dbg.iter_count);
-      ("t_count", `Int dbg.t_count);
-      ("s_count", `Int dbg.s_count);
-      ("hflz_size", `Int dbg.hflz_size);
-      ("hflz_inlined_size", `Int dbg.hflz_inlined_size);
-      ("hflz_pred_num", `Int dbg.hflz_pred_num);
-      ("hflz_inlined_pred_num", `Int dbg.hflz_inlined_pred_num);
+      ("t_count", `Int dbg.hflz_info.t_count);
+      ("s_count", `Int dbg.hflz_info.s_count);
+      ("hflz_size", `Int dbg.hflz_info.hflz_info_sub.hflz_size);
+      ("hflz_inlined_size", `Int dbg.hflz_info.hflz_info_sub.hflz_inlined_size);
+      ("hflz_pred_num", `Int dbg.hflz_info.hflz_info_sub.hflz_pred_num);
+      ("hflz_inlined_pred_num", `Int dbg.hflz_info.hflz_info_sub.hflz_inlined_pred_num);
       ("solved_by", `String dbg.solved_by);
       ("elapsed_all", `Float dbg.elapsed_all)]) in
   output_json data (get_file_name "post_merged" dbg.file dbg.mode dbg.iter_count)
@@ -181,12 +189,12 @@ module SolverCommon = struct
         ("iter_count", `Int dbg.iter_count);
         ("coe1", `Int dbg.coe1);
         ("coe2", `Int dbg.coe2);
-        ("t_count", `Int dbg.t_count);
-        ("s_count", `Int dbg.s_count);
-        ("hflz_size", `Int dbg.hflz_size);
-        ("hflz_inlined_size", `Int dbg.hflz_inlined_size);
-        ("hflz_pred_num", `Int dbg.hflz_pred_num);
-        ("hflz_inlined_pred_num", `Int dbg.hflz_inlined_pred_num);
+        ("t_count", `Int dbg.hflz_info.t_count);
+        ("s_count", `Int dbg.hflz_info.s_count);
+        ("hflz_size", `Int dbg.hflz_info.hflz_info_sub.hflz_size);
+        ("hflz_inlined_size", `Int dbg.hflz_info.hflz_info_sub.hflz_inlined_size);
+        ("hflz_pred_num", `Int dbg.hflz_info.hflz_info_sub.hflz_pred_num);
+        ("hflz_inlined_pred_num", `Int dbg.hflz_info.hflz_info_sub.hflz_inlined_pred_num);
       ]) in
     output_json data (get_file_name "pre" dbg.file dbg.mode 0)
     
@@ -729,12 +737,12 @@ let count_occuring (*id_type_map:(unit Hflmc2_syntax.Id.t, Manipulate.Hflz_util.
 
 let get_hflz_info hes =
   let inlined_hes = Manipulate.Hes_optimizer.InlineExpansion.optimize hes in
-  (
-    List.length (snd hes),
-    List.length (snd @@ inlined_hes),
-    Manipulate.Hflz_util.get_hflz_size hes,
-    Manipulate.Hflz_util.get_hflz_size inlined_hes
-  )
+  {
+    hflz_size = List.length (snd hes);
+    hflz_inlined_size = List.length (snd @@ inlined_hes);
+    hflz_pred_num = Manipulate.Hflz_util.get_hflz_size hes;
+    hflz_inlined_pred_num = Manipulate.Hflz_util.get_hflz_size inlined_hes;
+  }
   
 let elim_mu_exists solve_options (hes : 'a Hflz.hes) name =
   let {no_elim;
@@ -756,7 +764,7 @@ let elim_mu_exists solve_options (hes : 'a Hflz.hes) name =
         let hes, _, _ = add_arguments hes in
         hes
       else hes in
-    [hes, [], (0, 0, get_hflz_info hes)]
+    [hes, [], {t_count = 0; s_count = 0; hflz_info_sub = get_hflz_info hes}]
   end else begin
     let hes, id_type_map, id_ho_map =
       if should_add_arguments then
@@ -821,7 +829,7 @@ let elim_mu_exists solve_options (hes : 'a Hflz.hes) name =
         else
           hes
       in
-      hes, acc, (!t_count, !s_count, get_hflz_info hes)
+      hes, acc, {t_count = !t_count; s_count = !s_count; hflz_info_sub = get_hflz_info hes}
     ) heses
   end
 
@@ -913,8 +921,8 @@ let merge_debug_contexts cs_ =
         assert (c.add_arg_coe2 = c'.add_arg_coe2);
         assert (c.file = c'.file);
         assert (c.default_lexicographic_order = c'.default_lexicographic_order);
-        assert (c.t_count = c'.t_count);
-        assert (c.s_count = c'.s_count);
+        assert (c.hflz_info.t_count = c'.hflz_info.t_count);
+        assert (c.hflz_info.s_count = c'.hflz_info.s_count);
         assert (c.elapsed_all = c'.elapsed_all);
         assert (c.will_try_weak_subtype = c'.will_try_weak_subtype)
       )
@@ -933,12 +941,7 @@ let merge_debug_contexts cs_ =
       exists_assignment = None;
       temp_file = String.concat "," (List.map (fun c -> c.temp_file) cs_);
       solved_by = String.concat "," (List.map (fun c -> c.solved_by) cs_);
-      t_count = c.t_count;
-      s_count = c.s_count;
-      hflz_size = c.hflz_size;
-      hflz_pred_num = c.hflz_pred_num;
-      hflz_inlined_size = c.hflz_inlined_size;
-      hflz_inlined_pred_num = c.hflz_inlined_pred_num;
+      hflz_info = c.hflz_info;
       elapsed_all = c.elapsed_all;
       will_try_weak_subtype = c.will_try_weak_subtype;
       remove_disjunctions = c.remove_disjunctions;
@@ -970,12 +973,16 @@ let rec mu_elim_solver ?(cached_formula=None) iter_count (solve_options : Solve_
     exists_assignment = None;
     temp_file = "";
     solved_by = "";
-    t_count = -1;
-    s_count = -1;
-    hflz_size = -1;
-    hflz_pred_num = -1;
-    hflz_inlined_size = -1;
-    hflz_inlined_pred_num = -1;
+    hflz_info = {
+      t_count = -1;
+      s_count = -1;
+      hflz_info_sub = {
+        hflz_size = -1;
+        hflz_pred_num = -1;
+        hflz_inlined_size = -1;
+        hflz_inlined_pred_num = -1;
+      } 
+    };
     elapsed_all = -1.0;
     will_try_weak_subtype = solve_options.try_weak_subtype;
     remove_disjunctions = false;
@@ -989,8 +996,8 @@ let rec mu_elim_solver ?(cached_formula=None) iter_count (solve_options : Solve_
   let (solvers: (Status.t * debug_context) Deferred.t list list) = 
     match solve_options.backend_solver with
     | None ->
-      List.map (fun (nu_only_hes, exists_assignment, (t_count, s_count, (hflz_size, hflz_inlined_size, hflz_pred_num, hflz_inlined_pred_num))) ->
-        let debug_context_ = {debug_context_ with t_count; s_count; hflz_size; hflz_inlined_size; hflz_pred_num; hflz_inlined_pred_num} in
+      List.map (fun (nu_only_hes, exists_assignment, hflz_info) ->
+        let debug_context_ = {debug_context_ with hflz_info} in
         [
           solve_onlynu_onlyforall
             { solve_options with backend_solver = Some "hoice" }
@@ -1079,7 +1086,7 @@ let rec mu_elim_solver ?(cached_formula=None) iter_count (solve_options : Solve_
         ] else [])
       ) nu_only_heses
     | Some _ ->
-      List.map (fun (nu_only_hes, _, (t_count, s_count, (hflz_size, hflz_inlined_size, hflz_pred_num, hflz_inlined_pred_num))) -> [solve_onlynu_onlyforall solve_options {debug_context_ with t_count; s_count; hflz_size; hflz_inlined_size; hflz_pred_num; hflz_inlined_pred_num} nu_only_hes false false false false >>| pass_result]) nu_only_heses in
+      List.map (fun (nu_only_hes, _, hflz_info) -> [solve_onlynu_onlyforall solve_options {debug_context_ with hflz_info} nu_only_hes false false false false >>| pass_result]) nu_only_heses in
   let (is_valid : (Status.t * debug_context list) list Ivar.t) = Ivar.create () in
   let deferred_is_valid = Ivar.read is_valid in
   let (deferred_all : (Status.t * debug_context list) list Deferred.t) =

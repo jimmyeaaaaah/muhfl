@@ -1,3 +1,10 @@
-prog2/pepm19_ex2.3.in
-prog2/pepm19_ex2.4.in
-prog2/pepm19_ex3.2.in
+prog2/buggy_invalid/hofmann-2_direct.in
+prog2/buggy_invalid/koskinen-1-buggy_direct_dual.in
+prog2/buggy_invalid/koskinen-1_direct.in
+prog2/buggy_invalid/koskinen-2-buggy_direct_dual.in
+prog2/buggy_invalid/koskinen-2_direct.in
+prog2/buggy_invalid/koskinen-3-buggy-1_direct_dual.in
+prog2/buggy_invalid/koskinen-3-buggy-2_direct_dual.in
+prog2/buggy_invalid/koskinen-3_direct.in
+prog2/buggy_invalid/koskinen-4_direct.in
+prog2/buggy_invalid/lester_direct.in

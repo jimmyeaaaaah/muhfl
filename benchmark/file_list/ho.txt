@@ -1,7 +1,8 @@
+paper/fair_termination_ho/murase_closure_ho_2.in
 paper/fair_termination_ho/murase_intro_ho.in
 paper/fair_termination_ho/murase_repeat_ho.in
-paper/fair_termination_ho/hofmann-2_ho.in
 paper/fair_termination_ho/koskinen-3-3_ho.in
+paper/fair_termination_ho/koskinen-4_ho.in
 paper/termination_ho/any_down_ho.in
 paper/termination_ho/append_ho.in
 paper/termination_ho/binomial_ho.in
@@ -10,5 +11,6 @@ paper/termination_ho/indirect_ho.in
 paper/termination_ho/indirectHO_ho.in
 paper/termination_ho/mult_ho.in
 paper/termination_ho/nested_loop_ho.in
+paper/termination_ho/partial_ho.in
 paper/termination_ho/sum_ho.in
 paper/termination_ho/zip_ho.in
