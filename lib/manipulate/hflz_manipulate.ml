@@ -1037,7 +1037,7 @@ let elim_mu_with_rec (entry, rules) coe1 coe2 lexico_pair_number id_type_map use
               And (
                 List.map
                   (fun mytvar ->
-                    Pred (Ge, [Var {mytvar with ty=`Int}; Int 0])
+                    Pred (Gt, [Var {mytvar with ty=`Int}; Int 0])
                   )
                   mytvars |>
                 formula_fold
