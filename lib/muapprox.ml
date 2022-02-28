@@ -159,6 +159,7 @@ let main file cont =
       Ltl_program.eliminate_unused_argument psi
     else psi in
   let psi = if !Options.aggressive_simplification then simplify_agg_ psi else psi in
+  let psi = Manipulate.Reorder_arguments.run psi true !Options.no_temp_files in
   Muapprox_prover.check_validity solve_options psi (fun (s1, info) -> cont (s1, info))
 
 let assign_serial_to_vars_hes = Manipulate.Check_formula_equality.assign_serial_to_vars_hes
@@ -179,3 +180,4 @@ let constant_propagation =  Manipulate.Constant_propagation.run
 let simplify_if_condition = Manipulate.Simplify_if_condition.run
 let mufu_transform = MuFU_core.transform
 let add_nu_level_extra_arguments = Manipulate.Add_nu_level_extra_arguments.run
+let reorder_arguments = Manipulate.Reorder_arguments.run
