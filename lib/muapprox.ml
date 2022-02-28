@@ -89,6 +89,7 @@ let parse file =
   let psi = add_top_level_foralls psi in
   Log.info begin fun m -> m ~header:"Input" "%a" Print.(hflz_hes simple_ty_) psi end;
   check_predicate_name psi;
+  Manipulate.Hflz_typecheck.type_check psi;
   psi
 
 let get_solve_options file =

@@ -504,32 +504,41 @@ and to_hflz_argty ty =
   | TVar _ -> assert false
   | _ -> Type.TySigma (to_hflz_ty ty)
 
-let rec to_hflz body =
+let rec to_hflz env body =
   match body with
   | Bool b -> Hflz.Bool b
-  | Var v -> Hflz.Var {v with ty = to_hflz_ty v.ty }
-  | Or (p1, p2) -> Hflz.Or (to_hflz p1, to_hflz p2)
-  | And (p1, p2) -> Hflz.And (to_hflz p1, to_hflz p2)
+  | Var v -> begin
+    match List.find_all (fun x -> Id.eq x v) env with
+    | [v'] ->
+      Hflz.Var v'
+    | [] -> failwith "to_hflz: not found"
+    | _ -> failwith "to_hflz: multiple found"
+  end
+  | Or (p1, p2) -> Hflz.Or (to_hflz env p1, to_hflz env p2)
+  | And (p1, p2) -> Hflz.And (to_hflz env p1, to_hflz env p2)
   | Abs (xs, p, _) ->
+    let xs: unit Type.ty Type.arg Id.t list = List.map (fun x -> {x with Id.ty=to_hflz_argty x.Id.ty}) xs in
     let rec go_abs p xs =
       match xs with
-      | x::xs -> Hflz.Abs ({x with ty=to_hflz_argty x.Id.ty}, go_abs p xs)
+      | x::xs -> Hflz.Abs (x, go_abs p xs)
       | [] -> p
     in
-    let p = to_hflz p in
+    let env = env @
+      (List.filter_map (fun x -> match x.Id.ty with Type.TySigma ty -> Some {x with ty} | _ -> None) xs) in
+    let p = to_hflz env p in
     go_abs p xs
   | Forall (x, p) ->
-    Forall ({x with ty=Type.TyInt}, to_hflz p)
+    Forall ({x with ty=Type.TyInt}, to_hflz env p)
   | Exists (x, p) ->
-    Exists ({x with ty=Type.TyInt}, to_hflz p)
+    Exists ({x with ty=Type.TyInt}, to_hflz env p)
   | App (p, xs) ->
     let rec go_app p xs =
       match xs with
       | x::xs -> Hflz.App (go_app p xs, x)
       | [] -> p
     in
-    let p = to_hflz p in
-    let xs = List.map to_hflz xs in
+    let p = to_hflz env p in
+    let xs = List.map (to_hflz env) xs in
     go_app p (List.rev xs)
   | Arith a -> Hflz.Arith (go_arith a)
   | Pred (p, as') -> Hflz.Pred (p, List.map go_arith as')
@@ -540,13 +549,17 @@ and go_arith a =
   | Op (op, as') -> Op (op, List.map go_arith as')
   
 let to_hes rules =
-  List.map
-    (fun {var; fix; body} ->
-      let var = {var with ty = to_hflz_ty var.ty} in
-      let body = to_hflz body in
+  let pred_vars =
+    List.map
+      (fun {var; _} -> {var with ty = to_hflz_ty var.ty})
+      rules in
+  List.mapi
+    (fun i {fix; body; var = _} ->
+      let body = to_hflz pred_vars body in
       let fix = match fix with
         | Least -> Fixpoint.Least
         | Greatest -> Fixpoint.Greatest in
+      let var = List.nth pred_vars i in
       {Hflz.var; fix; body}
     )
     rules

@@ -113,4 +113,5 @@ let run (hes : 'a Hflz.hes) with_partial_analysis no_temp_files =
       in
   let rules = Add_arguments_tuple.to_hes rules in
   let hes = Hflz.decompose_entry_rule rules in
+  Hflz_typecheck.type_check hes;
   hes
