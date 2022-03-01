@@ -148,6 +148,10 @@ let main file cont =
   let solve_options = get_solve_options file in
   log_string @@ "z3_path: " ^ solve_options.z3_path;
   let psi = parse file in
+  let psi, solve_options =
+    if solve_options.backend_solver = Some "dual_for_debug"
+    then (Manipulate.Hflz_manipulate.get_dual_hes psi, { solve_options with backend_solver = None })
+    else (psi, solve_options) in
   (* coefficients's default values are 1, 1 (defined in solve_options.ml) *)
   (* for debug *)
   (* let psi = if inlining then (
