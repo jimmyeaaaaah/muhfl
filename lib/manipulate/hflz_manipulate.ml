@@ -402,13 +402,17 @@ let to_id_ho_map_from_id_type_map id_type_map =
     id_type_map
   |> List.flatten
   
-let encode_body_exists_formula_sub new_pred_name_cand coe1 coe2 hes_preds hfl (id_type_map : (unit Id.t, Hflz_util.variable_type, Hflmc2_syntax.IdMap.Key.comparator_witness) Base.Map.t) id_ho_map use_all_scoped_variables env = 
+let encode_body_exists_formula_sub
+    new_pred_name_cand
+    coe1
+    coe2
+    hes_preds
+    hfl
+    (id_type_map : (unit Id.t, Hflz_util.variable_type, Hflmc2_syntax.IdMap.Key.comparator_witness) Base.Map.t)
+    id_ho_map
+    use_all_scoped_variables
+    env = 
   let open Type in
-  let formula_type_vars = Hflz_util.get_hflz_type hfl |> to_args |> List.rev in
-  (* get free variables *)
-  let free_vars =
-    Hflz.fvs_with_type hfl
-    |> Id.remove_vars hes_preds in
   let bound_vars, hfl =
     (* sequence of existentially bound variables *)
     let rec go acc hfl = match hfl with
@@ -430,7 +434,34 @@ let encode_body_exists_formula_sub new_pred_name_cand coe1 coe2 hes_preds hfl (i
         None
       end
     ), hfl in
-  let arg_vars = free_vars @ formula_type_vars @ bound_vars  in
+  let guessed_terms =
+    log_string @@ "[encode_body_exists_formula_sub.guessed_conditions] body: " ^ show_hflz hfl;
+    log_string @@ Hflmc2_util.show_list (fun (t, id) -> "(" ^ t.Id.name ^ ", " ^ id.Id.name ^ ")") id_ho_map;
+    let id_type_map' = to_id_ho_map_from_id_type_map id_type_map in
+    log_string "id_type_map' (exists)";
+    log_string @@ Hflmc2_util.show_list (fun (t, id) -> "(" ^ t.Id.name ^ ", " ^ id.Id.name ^ ")") id_type_map';
+    let guessed_terms =
+      get_guessed_terms id_type_map [hfl] (if use_all_scoped_variables then env else []) (id_ho_map @ id_type_map')
+      |> List.map (fun arith_t ->
+        let fvs = Hflz.fvs (Arith arith_t) in
+        let bound_vars, not_bound_vars =
+          IdSet.partition_tf ~f:(fun id -> List.exists (fun bound_var -> Id.eq bound_var id) bound_vars) fvs in
+        if IdSet.is_empty bound_vars then
+          [arith_t]
+        else
+          IdSet.fold not_bound_vars ~init:[] ~f:(fun acc x -> (Arith.Var {x with ty=`Int})::acc)
+      )
+      |> List.concat
+      |> Hflmc2_util.remove_duplicates (=) in
+    log_string @@ "guessed_terms: " ^ (List.map (fun rr -> (show_hflz (Arith rr))) guessed_terms |> String.concat ",");
+    guessed_terms in
+  let formula_type_vars = Hflz_util.get_hflz_type hfl |> to_args |> List.rev in
+  (* get free variables *)
+  let free_vars =
+    ((Hflz.fvs_with_type hfl |> Id.remove_vars hes_preds) @
+    (List.map (fun term -> Hflz.fvs_with_type (Arith term)) guessed_terms |> List.flatten))
+    |> List.filter (fun v -> not @@ List.exists (fun v' -> Id.eq v v') bound_vars) in
+  let arg_vars = (bound_vars @ free_vars @ formula_type_vars) |> Hflmc2_util.remove_duplicates (Id.eq) in
   let new_pvar =
     let i = Id.gen_id() in
     let name =
@@ -444,28 +475,7 @@ let encode_body_exists_formula_sub new_pred_name_cand coe1 coe2 hes_preds hfl (i
         (TyBool ()) in
     { Id.name = name; ty = ty; id = i } in
   let body =
-    let guessed_conditions =
-      log_string @@ "[encode_body_exists_formula_sub.guessed_conditions] body: " ^ show_hflz hfl;
-      log_string @@ Hflmc2_util.show_list (fun (t, id) -> "(" ^ t.Id.name ^ ", " ^ id.Id.name ^ ")") id_ho_map;
-      let id_type_map' = to_id_ho_map_from_id_type_map id_type_map in
-      log_string "id_type_map' (exists)";
-      log_string @@ Hflmc2_util.show_list (fun (t, id) -> "(" ^ t.Id.name ^ ", " ^ id.Id.name ^ ")") id_type_map';
-      let guessed_terms =
-        get_guessed_terms id_type_map [hfl] (if use_all_scoped_variables then env else []) (id_ho_map @ id_type_map')
-        |> List.map (fun arith_t ->
-          let fvs = Hflz.fvs (Arith arith_t) in
-          let bound_vars, not_bound_vars =
-            IdSet.partition_tf ~f:(fun id -> List.exists (fun bound_var -> Id.eq bound_var id) bound_vars) fvs in
-          if IdSet.is_empty bound_vars then
-            [arith_t]
-          else
-            IdSet.fold not_bound_vars ~init:[] ~f:(fun acc x -> (Arith.Var {x with ty=`Int})::acc)
-        )
-        |> List.concat
-        |> Hflmc2_util.remove_duplicates (=) in
-      log_string @@ "guessed_terms: " ^ (List.map (fun rr -> (show_hflz (Arith rr))) guessed_terms |> String.concat ",");
-      get_guessed_conditions coe1 coe2 guessed_terms in
-    
+    let guessed_conditions = get_guessed_conditions coe1 coe2 guessed_terms in
     (* 各要素が x < 1 + c \/ ... という形式 *)
     let approx_formulas =
       bound_vars
@@ -572,8 +582,9 @@ let encode_body_exists
       )
     |> List.flatten in
   (* (entry, new_rules @ rules) |> (Hflz_util.with_rules Hflz_util.assign_unique_variable_id) *)
-  (entry, new_rules @ rules)
-
+  let hes = (entry, new_rules @ rules) in
+  Hflz_typecheck.type_check hes;
+  hes
 
 let get_outer_mu_funcs (funcs : 'a hes_rule list) =
   let funcs_count = List.length funcs in
