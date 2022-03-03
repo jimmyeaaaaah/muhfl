@@ -757,6 +757,11 @@ let elim_mu_exists solve_options (hes : 'a Hflz.hes) name =
   let add_arguments hes =
     Manipulate.Add_arguments_entry.infer solve_options.with_partial_analysis solve_options.with_usage_analysis hes add_arg_coe1 add_arg_coe2 solve_options.no_temp_files (lexico_pair_number > 1)
   in
+  let conv' hes =
+    if solve_options.reordering_of_arguments && solve_options.add_nu_level_extra_arguments then
+      Manipulate.Reorder_arguments.run hes true false
+    else hes
+  in
   
   if no_elim then begin
     let hes =
@@ -764,7 +769,7 @@ let elim_mu_exists solve_options (hes : 'a Hflz.hes) name =
         let hes, _, _ = add_arguments hes in
         hes
       else hes in
-    [hes, [], {t_count = 0; s_count = 0; hflz_info_sub = get_hflz_info hes}]
+    [conv' hes, [], {t_count = 0; s_count = 0; hflz_info_sub = get_hflz_info hes}]
   end else begin
     let hes, id_type_map, id_ho_map =
       if should_add_arguments then
@@ -829,7 +834,7 @@ let elim_mu_exists solve_options (hes : 'a Hflz.hes) name =
         else
           hes
       in
-      hes, acc, {t_count = !t_count; s_count = !s_count; hflz_info_sub = get_hflz_info hes}
+      conv' hes, acc, {t_count = !t_count; s_count = !s_count; hflz_info_sub = get_hflz_info hes}
     ) heses
   end
 

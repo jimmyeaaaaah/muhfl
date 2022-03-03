@@ -93,4 +93,5 @@ let infer with_partial_analysis with_usage_analysis (hes : 'a Hflz.hes) add_arg_
       ) rules in
   let hes = Hflz.decompose_entry_rule rules in
   let hes = Hflz_typecheck.set_variable_ty hes in  
+  Hflz_typecheck.type_check hes;
   hes, id_type_map, id_ho_map

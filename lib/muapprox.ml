@@ -133,6 +133,8 @@ let get_solve_options file =
     backend_options = !Options.backend_options;
     remove_disjunctions = !Options.remove_disjunctions;
     only_remove_disjunctions = !Options.only_remove_disjunctions;
+    reordering_of_arguments = !Options.reordering_of_arguments;
+    add_nu_level_extra_arguments = !Options.add_nu_level_extra_arguments;
   }
 
 let simplify_agg_ hes =
@@ -141,6 +143,14 @@ let simplify_agg_ hes =
   let path = Hflmc2_util.gen_temp_filename "/tmp/" ".tmp" in
   ignore @@ Manipulate.Print_syntax.MachineReadable.save_hes_to_file ~file:path ~without_id:false true hes;
   log_string @@ "simplified formula: " ^ path;
+  let hes = parse path in
+  hes
+
+let add_nu_level_extra_arguments hes =
+  let hes = Manipulate.Add_nu_level_extra_arguments.run hes true false in
+  let path = Hflmc2_util.gen_temp_filename "/tmp/" ".tmp" in
+  ignore @@ Manipulate.Print_syntax.MachineReadable.save_hes_to_file ~file:path ~without_id:false true hes;
+  log_string @@ "after add_nu_level_extra_arguments formula: " ^ path;
   let hes = parse path in
   hes
   
@@ -164,7 +174,8 @@ let main file cont =
       Ltl_program.eliminate_unused_argument psi
     else psi in
   let psi = if !Options.aggressive_simplification then simplify_agg_ psi else psi in
-  let psi = Manipulate.Reorder_arguments.run psi true !Options.no_temp_files in
+  let psi = if solve_options.reordering_of_arguments then Manipulate.Reorder_arguments.run psi true !Options.no_temp_files else psi in
+  let psi = if solve_options.add_nu_level_extra_arguments then add_nu_level_extra_arguments psi else psi in
   Muapprox_prover.check_validity solve_options psi (fun (s1, info) -> cont (s1, info))
 
 let assign_serial_to_vars_hes = Manipulate.Check_formula_equality.assign_serial_to_vars_hes
