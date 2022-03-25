@@ -81,7 +81,7 @@ type params =
   (** Try to solve only once **)
   
   ; eliminate_unused_arguments : bool [@default false]
-  (** Do optimization of elimination of unused arguments. (default: false) *)
+  (** (old option) Do optimization of a kind of elimination of unused arguments. (default: false) *)
   
   ; stop_on_unknown : bool [@default false]
   (** If false, skip "Unknown" result from a backend solver (the same behaviour as "Invalid" result). If true, stop solving when get "Unknown". (default: false) *)
@@ -96,7 +96,7 @@ type params =
   (** Default number of pairs when using lexicographic order *)
   
   ; simplify_bound : bool [@default false]
-  (** Simplify bound formulas for approximating mu *)
+  (** (old option) Simplify bound formulas for approximating mu *)
   
   ; use_simple_encoding_when_lexico_is_one: bool [@default true]
   (** Use simple encoding when lexicographic order is one *)
@@ -114,25 +114,31 @@ type params =
   (** DON'T eliminate mu and exists (debug purpose) *)
   
   ; use_all_variables : bool [@default false]
-  (** Use all variables (not only variables which are occured in arguments of application) to guess a recursion bound to approximate least-fixpoints. (This may (or may not) help Hoice.) *)
+  (** (old option) Use all variables (not only variables which are occured in arguments of application) to guess a recursion bound to approximate least-fixpoints. (This may (or may not) help Hoice.) *)
   
   ; replacer : string [@default ""]
-  (** Ad-hoc replacement of approximated forumula (for katsura-solver only) *)
+  (** (old option) Ad-hoc replacement of approximated forumula (for katsura-solver only) *)
   
   ; auto_existential_quantifier_instantiation : bool [@default false]
   (** Instantiate existential quantifiers even if instantiation seems to be effective *)
   
   ; no_partial_analysis : bool [@default false]
+  (** do not perform analysis on partial applications (Optimization 2 in the paper) for extra arguments *)
   
   ; no_usage_analysis : bool [@default false]
+  (** do not perform flow-(like-)analysis (Optiomization 1 in the paper) for extra arguments *)
   
   ; always_add_arguments : bool [@default false]
+  (** (old option)  *)
   
   ; aggressive_simplification : bool [@default false]
+  (** perform (not so aggressive) simplification. *)
   
   ; z3_path : string [@default ""]
+  (** z3 path (default: z3 in PATH) *)
   
   ; no_temp_files : bool [@default false]
+  (** do not generate temporary files in working directory *)
   
   ; try_weak_subtype : bool [@default false]
   (** Solve reduce nu-HFL(Z) forumla using the weak subtype by Burn et. al. **)
@@ -150,14 +156,16 @@ type params =
   (** Margin in output temporary formula for debug **)
   
   ; mufu : bool [@default false]
-  (** Preprocess a formula with the mufu transformation *)
+  (** (not fully implemented) Preprocess a formula with the mufu transformation *)
   
   ; remove_temporary_files : bool [@default false]
   (** Remove temporary files in /tmp on exit  *)
   
   ; disable_reordering_of_arguments : bool [@deafult false]
+  (** Do not reorder arguments where we move higher-order arguments to the last if possibe *)
   
   ; add_nu_level_extra_arguments : bool [@default false]
+  (* Add nu level extra arguments using encoding with existential quantifiers (currenly it does not produce better results) *)
   }
 [@@deriving cmdliner,show]
 
@@ -197,7 +205,7 @@ let set_up_params params =
   set_ref only_remove_disjunctions    params.only_remove_disjunctions;
   set_ref formula_margin              params.formula_margin;
   set_ref mufu                        params.mufu;
-  set_ref remove_temporary_files            params.remove_temporary_files;
+  set_ref remove_temporary_files      params.remove_temporary_files;
   set_ref reordering_of_arguments     (not params.disable_reordering_of_arguments);
   set_ref add_nu_level_extra_arguments params.add_nu_level_extra_arguments;
   params.input

@@ -10,6 +10,7 @@ The solver can be built with docker.
 cd docker
 
 # build
+# the ssh key is for kamocyc/hflmc2.git, kamocyc/muapprox.git, ketanahashi/fptprove.git repository
 DOCKER_BUILDKIT=1 docker build --progress=plain --secret id=ssh,src=<path_to_ssh_private_key> .
 
 # run
@@ -21,15 +22,28 @@ docker run -v <path_to_repositoy>/benchmark/inputs:/home/opam/inputs/ <image_id>
 docker run -v <path_to_repositoy>/benchmark/inputs:/home/opam/inputs/ <image_id> muapprox_main /home/opam/inputs/termination/notused/sum-invalid.in  # invalid
 ```
 
+## Run benchmark
+
+1. In the repository's root directory,
+    run ``python3 memory_watchdog.py &``.
+    This script kills the (backend) solver if it uses excessive memory.
+2. ``cd benchmark``
+3. ``python3 bench1.py --timeout <timeout for the solver> --benchmark <text file with a list of input files (in benchmark/file_list directory)> <script to run the solver (in benchmark directory )>``
+    * e.g. ``python3 bench1.py --timeout 900 --benchmark all_paper_t muapprox_katsura``.
+
+* Benchmark used in the paper
+  * ``all_paper_t`` for Experiment 1, ``ho`` for Experiment 2 (``run_ho_test.sh`` script), and ``prog2`` for Experiment 3
+  * ``muapprox_katsura`` script is used
+
+## Scripts (in the repository's root directory)
+
+* ``x``: shortcut to run the solver
+* ``killp.sh``: Kill zombie processes (The script kills processes with the current user and with specific process names)
+* ``clear.sh``: Remove temporary files created in the tool's working directory
+
 ## Show help
 
 ``docker run <image_id> muapprox_main --help | less``
-
-## Kill zombie processes
-
-Currently, you need to kill zombie processes if you interrupt the solver with Ctrl+C, or something.
-
-``docker run <image_id> killp.sh``
 
 ## Installation of other backend nu-HFL(Z) solvers (optional)
 

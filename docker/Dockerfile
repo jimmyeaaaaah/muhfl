@@ -10,7 +10,7 @@ RUN sudo apt update && sudo apt install wget -y
 RUN eval $(opam env) && opam install dune cmdliner core fmt logs lwt menhirLib ppx_compare \
   ppx_deriving ppx_deriving_cmdliner ppx_let ppx_sexp_conv menhir async yojson -y
 
-# katsura-solver
+# RetHFL (katsura-solver)
 WORKDIR $ROOT_PATH
 RUN git clone https://github.com/kamocyc/hflmc2.git hflmc2_mora
 WORKDIR $ROOT_PATH/hflmc2_mora
@@ -48,7 +48,7 @@ RUN wget https://github.com/uuverifiers/eldarica/releases/download/v2.0.5/eldari
 # for ssh
 RUN mkdir -p -m 0700 ~/.ssh && ssh-keyscan github.com >> ~/.ssh/known_hosts && ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts
 
-# Tanahashi solver
+# MuHFL (tanahashi solver)
 WORKDIR $ROOT_PATH
 RUN --mount=type=secret,id=ssh,target=/home/opam/.ssh/id_rsa,uid=1000,gid=1000 git clone git@github.com:kamocyc/muapprox.git
 WORKDIR $ROOT_PATH/muapprox
