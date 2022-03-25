@@ -32,7 +32,7 @@ docker run -v <path_to_repositoy>/benchmark/inputs:/home/opam/inputs/ <image_id>
     * e.g. ``python3 bench1.py --timeout 900 --benchmark all_paper_t muapprox_katsura``.
 
 * Benchmark used in the paper
-  * ``all_paper_t`` for Experiment 1, ``ho`` for Experiment 2 (``run_ho_test.sh`` script), and ``prog2`` for Experiment 3
+  * ``all_paper_t`` for Experiment 1 (all inputs are in benchmark/inputs/paper directory), ``ho`` for Experiment 2 (``run_ho_test.sh`` script), and ``prog2`` for Experiment 3
   * ``muapprox_katsura`` script is used
 
 ## Scripts (in the repository's root directory)
@@ -40,6 +40,15 @@ docker run -v <path_to_repositoy>/benchmark/inputs:/home/opam/inputs/ <image_id>
 * ``x``: shortcut to run the solver
 * ``killp.sh``: Kill zombie processes (The script kills processes with the current user and with specific process names)
 * ``clear.sh``: Remove temporary files created in the tool's working directory
+* ``simplify.sh``: Simplify a given HFL formula
+
+## Other tools
+
+* ``bin2/branching_time_program_converter.ml``: Reduce a Omega regular property verification problem for OCaml-like program to HFL(Z) validity checking problem.
+  * e.g., ``dune exec bin2/branching_time_program_converter.exe --  benchmark/inputs/paper/fair_termination_ho/murase_closure_2.txt``
+
+* ``bin2/dual.ml``: Output a dual formula of a given formula
+  * e.g., ``dune exec bin2/dual.exe -- benchmark/inputs/paper/termination/sum.in``
 
 ## Show help
 
