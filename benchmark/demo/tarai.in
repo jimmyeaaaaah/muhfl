@@ -1,0 +1,10 @@
+%HES
+Sentry  =v ∃x_689.∃x_678.∃x_661.TARAI x_661 x_678 x_689 (\x_671.false).
+TARAI x_3 y z k_tarai_52 =v
+  (y >= x_3
+   \/ TARAI (z - 1) x_3 y
+       (\x_694.
+         TARAI (y - 1) z x_3
+          (\x_684.
+            TARAI (x_3 - 1) y z (\x_668.TARAI x_668 x_684 x_694 k_tarai_52))))
+  /\ (y < x_3 \/ k_tarai_52 y).
