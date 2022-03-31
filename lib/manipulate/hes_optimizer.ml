@@ -569,7 +569,7 @@ let rec simplify_all hes =
   let hes' = simplify hes in
   if hes' <> hes then simplify_all hes' else hes'
 
-let simplify_agg trivial_only hes =
+let simplify_agg trivial_only ?(no_eliminate_unused_arguments=false) hes =
   let go hes =
     hes
     |> log_hes "simplify_agg (a0)"
@@ -596,7 +596,7 @@ let simplify_agg trivial_only hes =
   |> log_hes "simplify_agg (4)"
   |> eliminate_unreachable_predicates
   |> log_hes "simplify_agg (5)"
-  |> Eliminate_unused_argument.eliminate_unused_argument
+  |> (if no_eliminate_unused_arguments then (fun x -> x) else Eliminate_unused_argument.eliminate_unused_argument ~id_type_map:IdMap.empty)
   |> log_hes "simplify_agg (6)"
   |> Constant_propagation.run |> go
   |> log_hes "simplify_agg (7)"

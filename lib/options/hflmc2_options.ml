@@ -44,6 +44,7 @@ let mufu = ref (Obj.magic())
 let remove_temporary_files = ref (Obj.magic())
 let reordering_of_arguments = ref (Obj.magic())
 let add_nu_level_extra_arguments = ref (Obj.magic())
+let no_eliminate_unused_arguments = ref (Obj.magic())
 
 (******************************************************************************)
 (* Parser                                                                     *)
@@ -81,8 +82,11 @@ type params =
   (** Try to solve only once **)
   
   ; eliminate_unused_arguments : bool [@default false]
-  (** (old option) Do optimization of a kind of elimination of unused arguments. (default: false) *)
+  (** (not working) Do optimization of a kind of elimination of unused arguments. (default: false) *)
   
+  ; no_eliminate_unused_arguments : bool [@default false]
+  (** Do not eliminate unused arguments. This overwrites --aggressive-simplification. (default: false) *)
+
   ; stop_on_unknown : bool [@default false]
   (** If false, skip "Unknown" result from a backend solver (the same behaviour as "Invalid" result). If true, stop solving when get "Unknown". (default: false) *)
   
@@ -208,6 +212,7 @@ let set_up_params params =
   set_ref remove_temporary_files      params.remove_temporary_files;
   set_ref reordering_of_arguments     (not params.disable_reordering_of_arguments);
   set_ref add_nu_level_extra_arguments params.add_nu_level_extra_arguments;
+  set_ref no_eliminate_unused_arguments params.no_eliminate_unused_arguments;
   params.input
 
 (******************************************************************************)

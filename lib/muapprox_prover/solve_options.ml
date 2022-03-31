@@ -49,6 +49,7 @@ type options =
     only_remove_disjunctions: bool;
     reordering_of_arguments: bool;
     add_nu_level_extra_arguments: bool;
+    no_eliminate_unused_arguments: bool;
   }
 let get_solver solver_name = 
   match solver_name with

@@ -135,11 +135,12 @@ let get_solve_options file =
     only_remove_disjunctions = !Options.only_remove_disjunctions;
     reordering_of_arguments = !Options.reordering_of_arguments;
     add_nu_level_extra_arguments = !Options.add_nu_level_extra_arguments;
+    no_eliminate_unused_arguments = !Options.no_eliminate_unused_arguments;
   }
 
-let simplify_agg_ hes =
+let simplify_agg_ no_eliminate_unused_arguments hes =
   let hes = Manipulate.Hes_optimizer.simplify_all hes in
-  let hes = Manipulate.Hes_optimizer.simplify_agg false hes in
+  let hes = Manipulate.Hes_optimizer.simplify_agg ~no_eliminate_unused_arguments false hes in
   let path = Hflmc2_util.gen_temp_filename "/tmp/" ".tmp" in
   ignore @@ Manipulate.Print_syntax.MachineReadable.save_hes_to_file ~file:path ~without_id:false true hes;
   log_string @@ "simplified formula: " ^ path;
@@ -169,11 +170,7 @@ let main file cont =
     Log.info begin fun m -> m ~header:"Simplified" "%a" Print.(hflz_hes simple_ty_) psi end;
     psi
   ) else psi in *)
-  let psi =
-    if !Options.eliminate_unused_arguments || !Options.aggressive_simplification then
-      Ltl_program.eliminate_unused_argument psi
-    else psi in
-  let psi = if !Options.aggressive_simplification then simplify_agg_ psi else psi in
+  let psi = if !Options.aggressive_simplification then simplify_agg_ !Options.no_eliminate_unused_arguments psi else psi in
   let psi = if solve_options.reordering_of_arguments then Manipulate.Reorder_arguments.run psi true !Options.no_temp_files else psi in
   let psi = if solve_options.add_nu_level_extra_arguments then add_nu_level_extra_arguments psi else psi in
   Muapprox_prover.check_validity solve_options psi (fun (s1, info) -> cont (s1, info))
