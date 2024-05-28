@@ -136,6 +136,7 @@ let get_solve_options file =
     reordering_of_arguments = !Options.reordering_of_arguments;
     add_nu_level_extra_arguments = !Options.add_nu_level_extra_arguments;
     no_eliminate_unused_arguments = !Options.no_eliminate_unused_arguments;
+    disjunction_selector = !Options.disjunction_selector;
   }
 
 let simplify_agg_ no_eliminate_unused_arguments hes =

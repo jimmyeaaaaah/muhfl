@@ -3,6 +3,7 @@ module Fixpoint = Hflmc2_syntax.Fixpoint
 module Status = Status
 module Solve_options = Solve_options
 module Hflz_mani = Manipulate.Hflz_manipulate
+module Print_syntax = Manipulate.Print_syntax
 module Check_formula_equality = Manipulate.Check_formula_equality
 module Abbrev_variable_numbers = Manipulate.Abbrev_variable_numbers
 module Mochi_solver = Mochi_solver
@@ -35,6 +36,7 @@ type debug_context = {
   coe2: int;
   add_arg_coe1: int;
   add_arg_coe2: int;
+  counter_decrement: int;
   iter_count: int;
   mode: string;
   pid: int;
@@ -67,6 +69,7 @@ let show_debug_context debug =
     ("coe2", soi debug.coe2);
     ("add_arg_coe1", if debug.add_arg_coe1 = 0 then "-" else soi debug.add_arg_coe1);
     ("add_arg_coe2", if debug.add_arg_coe1 = 0 then "-" else soi debug.add_arg_coe2);
+    ("counter_decrement", soi debug.counter_decrement);
     ("default_lexicographic_order", string_of_int debug.default_lexicographic_order);
     ("exists_assignment", Option.map (fun m -> "[" ^ ((List.map (fun (id, v) -> id.Hflmc2_syntax.Id.name ^ "=" ^ string_of_int v) m) |> String.concat "; ") ^ "]") debug.exists_assignment |> unwrap_or "-");
     ("t_count", soi debug.hflz_info.t_count);
@@ -680,20 +683,20 @@ let count_exists (entry, rules) =
   go entry
   + List.fold_left (fun acc {Hflz.body; _} -> acc + go body) 0 rules
   
-let should_instantiate_exists original_hes z3_path =
+let should_instantiate_exists original_hes z3_path disjunction_selector =
   let existential_quantifier_number_threthold = 3 in
-  let coe1, coe2, lexico_pair_number = (1, 1, 1) in
-  
+  let coe1, coe2, lexico_pair_number, counter_decrement = (1, 1, 1, 0) in
+  let new_iteration = ref true in
   let exists_count_prover = count_exists original_hes in
   let hes_ = Hflz_mani.encode_body_exists coe1 coe2 original_hes Hflmc2_syntax.IdMap.empty [] false in
-  let hes_ = Hflz_mani.elim_mu_with_rec hes_ coe1 coe2 lexico_pair_number Hflmc2_syntax.IdMap.empty false [] z3_path in
+  let hes_ = Hflz_mani.elim_mu_with_rec hes_ coe1 coe2 lexico_pair_number Hflmc2_syntax.IdMap.empty false [] z3_path counter_decrement new_iteration disjunction_selector in
   if not @@ Hflz.ensure_no_mu_exists hes_ then failwith "elim_mu";
   is_nu_only_tractable hes_
   >>= (fun t_prover ->
     let dual_hes = Hflz_mani.get_dual_hes original_hes in
     let exists_count_disprover = count_exists dual_hes in
     let dual_hes = Hflz_mani.encode_body_exists coe1 coe2 dual_hes Hflmc2_syntax.IdMap.empty [] false  in
-    let dual_hes = Hflz_mani.elim_mu_with_rec dual_hes coe1 coe2 lexico_pair_number Hflmc2_syntax.IdMap.empty false [] z3_path in
+    let dual_hes = Hflz_mani.elim_mu_with_rec dual_hes coe1 coe2 lexico_pair_number Hflmc2_syntax.IdMap.empty false [] z3_path counter_decrement new_iteration disjunction_selector in
     if not @@ Hflz.ensure_no_mu_exists dual_hes then failwith "elim_mu";
     is_nu_only_tractable dual_hes
     >>| (fun t_disprover ->
@@ -744,12 +747,12 @@ let get_hflz_info hes =
     hflz_inlined_pred_num = Manipulate.Hflz_util.get_hflz_size inlined_hes;
   }
   
-let elim_mu_exists solve_options (hes : 'a Hflz.hes) name =
+let elim_mu_exists solve_options (hes : 'a Hflz.hes) name new_iteration =
   let {no_elim;
     use_all_variables;
     assign_values_for_exists_at_first_iteration; approx_parameter;_ } = solve_options in
   (* TODO: use 2nd return value of add_arguments *)
-  let {coe1; coe2; add_arg_coe1; add_arg_coe2; lexico_pair_number} = approx_parameter in
+  let {coe1; coe2; add_arg_coe1; add_arg_coe2; lexico_pair_number; counter_decrement} = approx_parameter in
   let should_add_arguments = add_arg_coe1 > 0 in
   let s_count = ref 0 in
   let t_count = ref 0 in
@@ -814,8 +817,8 @@ let elim_mu_exists solve_options (hes : 'a Hflz.hes) name =
           ignore @@ Manipulate.Print_syntax.FptProverHes.save_hes_to_file ~file:("muapprox_" ^ name ^ "_exists_encoded.txt") hes
         in
 
-      let hes = Hflz_mani.elim_mu_with_rec hes coe1 coe2 lexico_pair_number id_type_map use_all_variables id_ho_map solve_options.z3_path in
-      
+      let hes = Hflz_mani.elim_mu_with_rec hes coe1 coe2 lexico_pair_number id_type_map use_all_variables id_ho_map solve_options.z3_path counter_decrement new_iteration solve_options.disjunction_selector in
+
       let () =
         Log.info begin fun m -> m ~header:("Eliminate Mu (" ^ name ^ ")") "%a" Manipulate.Print_syntax.FptProverHes.hflz_hes' hes end;
         if not solve_options.no_temp_files then
@@ -855,7 +858,11 @@ let summarize_results (results : (Status.t * 'a) list) =
     else Status.Unknown, List.map snd results
   end
 
-let get_next_approx_parameter ?param ?(iter_count=0) with_add_arguments =
+let get_next_approx_parameter ?(param:approx_parameter option) ?(iter_count=0) with_add_arguments =
+  let counter_decrement =
+    match param with
+    | Some p -> p.counter_decrement
+    | None -> 0 in
   let coeffs = 
     if with_add_arguments then
       [
@@ -869,9 +876,9 @@ let get_next_approx_parameter ?param ?(iter_count=0) with_add_arguments =
         (1, 8,  2, 1, 2); (* 8 *)
          *)
         (* (1, 1, 1, 1, 1); *)
-        (2, 1, 1, 1, 2);
-        (1, 5000, 1, 1, 1);
-        (1, 5000, 1, 1, 2);
+        (2, 5, 1, 1, 2);
+        (0, 5000, 1, 1, 1);
+        (4, 5, 1, 1, 2);
         (* (1, 8, 1, 1, 1);
         (1, 8, 1, 1, 2); *)
       ]
@@ -879,8 +886,8 @@ let get_next_approx_parameter ?param ?(iter_count=0) with_add_arguments =
       [
         (* (1, 1, 1, 1, 1); *)
         (2, 5, 1, 1, 2);
-        (1, 5000, 1, 1, 1);
-        (1, 5000, 1, 1, 2);
+        (0, 5000, 1, 1, 1);
+        (4, 5, 1, 1, 2);
         (*
         (1, 1,  0, 0, 1);
         (1, 1,  0, 0, 2);
@@ -889,13 +896,14 @@ let get_next_approx_parameter ?param ?(iter_count=0) with_add_arguments =
         (2, 16, 0, 0, 2); *)
       ] in
   match List.nth_opt coeffs iter_count with
-  | Some (coe1, coe2, add_arg_coe1, add_arg_coe2, lexico_pair_number) ->
+  | Some (coe1, coe2, add_arg_coe1, add_arg_coe2, lexico_pair_number) -> 
     {
       coe1 = coe1;
       coe2 = coe2;
       add_arg_coe1 = add_arg_coe1;
       add_arg_coe2 = add_arg_coe2;
       lexico_pair_number = lexico_pair_number;
+      counter_decrement = counter_decrement;
     }
   | None -> begin
     let param = Option.get param in
@@ -910,6 +918,7 @@ let get_next_approx_parameter ?param ?(iter_count=0) with_add_arguments =
         add_arg_coe1 = param.add_arg_coe1 * 2;
         add_arg_coe2 = param.add_arg_coe2 * 2;
         lexico_pair_number = 1;
+        counter_decrement = counter_decrement;
       }
   end
 
@@ -939,6 +948,7 @@ let merge_debug_contexts cs_ =
       coe2 = c.coe2;
       add_arg_coe1 = c.add_arg_coe1;
       add_arg_coe2 = c.add_arg_coe2;
+      counter_decrement = c.counter_decrement;
       pid = -1;
       file = c.file;
       backend_solver = None;
@@ -957,10 +967,11 @@ let merge_debug_contexts cs_ =
 (* これ以降、本プログラム側での近似が入る *)
 let rec mu_elim_solver ?(cached_formula=None) iter_count (solve_options : Solve_options.options) hes mode_name iter_count_offset =
   Hflz_mani.simplify_bound := solve_options.simplify_bound;
+  let new_iteration = ref true in
   let nu_only_heses =
     match cached_formula with
     | None ->
-      elim_mu_exists solve_options hes mode_name
+      elim_mu_exists solve_options hes mode_name new_iteration
       (* |> (if solve_options.remove_disjunctions then List.map (fun (hes, a, b) -> Manipulate.Remove_disjunctions.convert hes, a, b) else (fun a -> a)) *)
     | Some p -> p in
   let approx_param = solve_options.approx_parameter in
@@ -971,6 +982,7 @@ let rec mu_elim_solver ?(cached_formula=None) iter_count (solve_options : Solve_
     coe2 = approx_param.coe2;
     add_arg_coe1 = approx_param.add_arg_coe1;
     add_arg_coe2 = approx_param.add_arg_coe2;
+    counter_decrement = approx_param.counter_decrement;
     pid = solve_options.pid;
     file = solve_options.file;
     backend_solver = None;
@@ -1142,9 +1154,15 @@ let rec mu_elim_solver ?(cached_formula=None) iter_count (solve_options : Solve_
         if !has_solved then
           return (Status.Unknown, debug_contexts)
         else begin
-          let approx_param = get_next_approx_parameter ~param:approx_param ~iter_count:(iter_count + iter_count_offset) solve_options.add_arguments in
-          let solve_options = { solve_options with approx_parameter = approx_param } in
-          mu_elim_solver (iter_count + 1) solve_options hes mode_name iter_count_offset
+          if !new_iteration then (* 全パターンのcounter_decrementをし終わって、係数のupdateをして良い *)
+            let approx_param = get_next_approx_parameter ~param:{approx_param with counter_decrement = 0} ~iter_count:(iter_count + iter_count_offset + 1) solve_options.add_arguments in
+            let solve_options = { solve_options with approx_parameter = approx_param } in
+            mu_elim_solver (iter_count + 1) solve_options hes mode_name iter_count_offset
+          else 
+            let new_counter_decrement = approx_param.counter_decrement + 1 in
+            let approx_param = get_next_approx_parameter ~param:{approx_param with counter_decrement = new_counter_decrement} ~iter_count:(iter_count + iter_count_offset) solve_options.add_arguments in
+            let solve_options = { solve_options with approx_parameter = approx_param } in
+            mu_elim_solver iter_count solve_options hes mode_name iter_count_offset
         end
       in
       match result with
@@ -1163,8 +1181,8 @@ let rec mu_elim_solver ?(cached_formula=None) iter_count (solve_options : Solve_
 let check_validity_full (solve_options : Solve_options.options) hes iter_count_offset =
   let hes_for_disprove = Hflz_mani.get_dual_hes hes in
   let deferreds =
-    [ mu_elim_solver 1 solve_options hes "prover" iter_count_offset;
-      (mu_elim_solver 1 solve_options hes_for_disprove "disprover" iter_count_offset >>| (fun (s, i) -> Status.flip s, i)) ] in
+    [ mu_elim_solver 0 solve_options hes "prover" iter_count_offset;
+      (mu_elim_solver 0 solve_options hes_for_disprove "disprover" iter_count_offset >>| (fun (s, i) -> Status.flip s, i)) ] in
   let dresult = Deferred.any deferreds in
   dresult >>=
     (fun ri ->
@@ -1178,8 +1196,8 @@ let check_validity_full (solve_options : Solve_options.options) hes iter_count_o
 let check_validity_full_oneshot (solve_options : Solve_options.options) hes =
   let hes_for_disprove = Hflz_mani.get_dual_hes hes in
   let deferreds =
-    [ mu_elim_solver 1 solve_options hes "prover" 0;
-      mu_elim_solver 1 solve_options hes_for_disprove "disprover" 0] in
+    [ mu_elim_solver 0 solve_options hes "prover" 0;
+      mu_elim_solver 0 solve_options hes_for_disprove "disprover" 0] in
   let dresult =
     let deferred_got_result = Ivar.create () in
     let deferred_deferred_got_result = Ivar.read deferred_got_result in
@@ -1268,7 +1286,7 @@ let check_validity solve_options (hes : 'a Hflz.hes) cont =
   
   let dresult =
     (if solve_options.auto_existential_quantifier_instantiation && not solve_options.assign_values_for_exists_at_first_iteration then
-      should_instantiate_exists hes solve_options.z3_path
+      should_instantiate_exists hes solve_options.z3_path solve_options.disjunction_selector
       >>| (fun f ->
         if f then { solve_options with assign_values_for_exists_at_first_iteration = true } else solve_options
       )

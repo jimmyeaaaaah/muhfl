@@ -646,7 +646,7 @@ let range n m =
     else i::(go (i + 1)) in
   go n
 
-let make_app new_fml rec_vars formula_type_terms guessed_conditions =
+let make_app new_fml rec_vars formula_type_terms guessed_conditions counter_decrement new_iteration disjunction_selector =
   let pres, dec, posts =
     List.fold_left
       (fun (pres, dec, posts) (f, terms) ->
@@ -689,26 +689,55 @@ let make_app new_fml rec_vars formula_type_terms guessed_conditions =
     in
     let temp_t_var =
       Id.gen ~name:(t2.name ^ "_n") Type.TyInt in
-    Or (
-      to_app'
-        (Arith (
-          Arith.Op (Arith.Sub, [a_to_i t1; Int 1])
-        ))
-        (Arith (a_to_i t2)),
-      Forall (
-        temp_t_var,
-        Or (
-          formula_fold
-            (fun a b -> Or (a, b))
-            (List.map (fun cond -> Pred (Lt, [a_to_i temp_t_var; cond])) guessed_conditions),
-          to_app'
-            (Arith (a_to_i temp_t_var))
-            (Arith (
-                Arith.Op (Arith.Sub, [a_to_i t2; Int 1])
-            ))
-        )  
+    if disjunction_selector then begin 
+      let idx = fst !counter_decrement in
+      let bit = snd !counter_decrement in
+      let decrement_t1 = bit land (0b1 lsl idx) <> 0 in
+      counter_decrement := (idx + 1, bit); 
+      if decrement_t1 then 
+        to_app'
+          (Arith (
+            Arith.Op (Arith.Sub, [a_to_i t1; Int 1])
+          ))
+          (Arith (a_to_i t2))
+      else begin
+        new_iteration := false; 
+        Forall (
+          temp_t_var,
+          Or (
+            formula_fold
+              (fun a b -> Or (a, b))
+              (List.map (fun cond -> Pred (Lt, [a_to_i temp_t_var; cond])) guessed_conditions),
+            to_app'
+              (Arith (a_to_i temp_t_var))
+              (Arith (
+                  Arith.Op (Arith.Sub, [a_to_i t2; Int 1])
+              ))
+          )
+        )
+      end
+    end else begin
+      Or (
+        to_app'
+          (Arith (
+            Arith.Op (Arith.Sub, [a_to_i t1; Int 1])
+          ))
+          (Arith (a_to_i t2)), 
+        Forall (
+          temp_t_var,
+          Or (
+            formula_fold
+              (fun a b -> Or (a, b))
+              (List.map (fun cond -> Pred (Lt, [a_to_i temp_t_var; cond])) guessed_conditions),
+            to_app'
+              (Arith (a_to_i temp_t_var))
+              (Arith (
+                  Arith.Op (Arith.Sub, [a_to_i t2; Int 1])
+              ))
+          )
+        )
       )
-    )
+    end
   end
   | None ->
     to_app
@@ -725,8 +754,12 @@ let replace_occurences
     (id_type_map : (unit Id.t, Hflz_util.variable_type, Hflmc2_syntax.IdMap.Key.comparator_witness) Base.Map.t)
     use_all_scoped_variables
     id_ho_map
+    (counter_decrement: int)
+    (new_iteration: bool ref)
+    (disjunction_selector: bool)
     (fml : 'a Hflz.t) : 'a Hflz.t =
   let is_lexi_one = List.map (fun e -> List.length (snd e)) rec_lex_tvars |> List.for_all ((=)1) in
+  let counter_decrement = ref (0, counter_decrement) in
   let rec go env (apps : Type.simple_ty t list) fml : 'a Hflz.t = 
     match fml with
     | Var pvar when Id.is_pred_name pvar.Id.name -> begin
@@ -824,7 +857,7 @@ let replace_occurences
             formula_type_ids
             (
               let rec_vars = make_args Env.empty scoped_rec_tvars in
-              make_app new_fml rec_vars formula_type_terms guessed_conditions
+              make_app new_fml rec_vars formula_type_terms guessed_conditions counter_decrement new_iteration disjunction_selector
             )
           )
       else begin
@@ -853,7 +886,7 @@ let replace_occurences
                     (rec_vars @ formula_type_terms)
                 else
                   let rec_vars = make_args (Env.create (Core.List.zip_exn new_pvars new_tvars)) scoped_rec_tvars in
-                  make_app new_fml rec_vars formula_type_terms guessed_conditions
+                  make_app new_fml rec_vars formula_type_terms guessed_conditions counter_decrement new_iteration disjunction_selector
               )
             )
           )
@@ -987,7 +1020,7 @@ let remove_redundant_bounds id_type_map (phi : Type.simple_ty Hflz.t) =
   in 
   go phi
    
-let elim_mu_with_rec (entry, rules) coe1 coe2 lexico_pair_number id_type_map use_all_scoped_variables id_ho_map z3_path =
+let elim_mu_with_rec (entry, rules) coe1 coe2 lexico_pair_number id_type_map use_all_scoped_variables id_ho_map z3_path counter_decrement new_iteration disjunction_selector =
   (* calc outer_mu_funcs *)
   let rules = Hflz.merge_entry_rule (entry, rules) in
   let outer_mu_funcs = get_outer_mu_funcs rules in
@@ -1022,7 +1055,7 @@ let elim_mu_with_rec (entry, rules) coe1 coe2 lexico_pair_number id_type_map use
       let outer_pvars = Env.lookup mypvar outer_mu_funcs in
       let scoped_rec_tvars =
         Env.create (List.map (fun pvar -> (pvar, (Env.lookup pvar rec_tvars))) outer_pvars) in
-      let body = replace_occurences coe1 coe2 outer_mu_funcs scoped_rec_tvars rec_tvars rec_lex_tvars id_type_map use_all_scoped_variables id_ho_map body in
+      let body = replace_occurences coe1 coe2 outer_mu_funcs scoped_rec_tvars rec_tvars rec_lex_tvars id_type_map use_all_scoped_variables id_ho_map counter_decrement new_iteration disjunction_selector body in
       (* Log.info begin fun m -> m ~header:"body" "%a" Print.(hflz simple_ty_) body end; *)
       let formula_type_vars = Hflz_util.get_hflz_type body |> to_args |> List.rev in
       let rec_tvar_bounds' =

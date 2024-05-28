@@ -45,6 +45,7 @@ let remove_temporary_files = ref (Obj.magic())
 let reordering_of_arguments = ref (Obj.magic())
 let add_nu_level_extra_arguments = ref (Obj.magic())
 let no_eliminate_unused_arguments = ref (Obj.magic())
+let disjunction_selector = ref (Obj.magic())
 
 (******************************************************************************)
 (* Parser                                                                     *)
@@ -170,6 +171,9 @@ type params =
   
   ; add_nu_level_extra_arguments : bool [@default false]
   (* Add nu level extra arguments using encoding with existential quantifiers (currenly it does not produce better results) *)
+
+  ; disjunction_selector : bool [@deafult false]
+  (* Select one of the disjunctions which are generated due to multiple counters *)
   }
 [@@deriving cmdliner,show]
 
@@ -213,6 +217,7 @@ let set_up_params params =
   set_ref reordering_of_arguments     (not params.disable_reordering_of_arguments);
   set_ref add_nu_level_extra_arguments params.add_nu_level_extra_arguments;
   set_ref no_eliminate_unused_arguments params.no_eliminate_unused_arguments;
+  set_ref disjunction_selector        params.disjunction_selector;
   params.input
 
 (******************************************************************************)
