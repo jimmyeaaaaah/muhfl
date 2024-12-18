@@ -1,0 +1,81 @@
+%HES
+Sentry =v
+  ∀l. 
+   (l < 0
+    \/ (∀sssss. 
+         sssss < 1 * l + 1 \/ sssss < (-1) * l + 1 \/ sssss < 1
+         \/ (∀recXX. 
+              recXX < 8 + 1 * 0 \/ recXX < 8 + (-1) * 0 \/ recXX < 8 + 1 * l
+              \/ recXX < 8 + (-1) * l
+              \/ recXX < 8
+              \/ XX recXX l sssss 0 (\u. \k_main. k_main l) (\x. true))))
+   /\ (l >= 0 \/ true).
+MAP recMAP _l f fxs k_map =v
+  recMAP > 0
+  /\ fxs 0
+      (\x. 
+        (x != 0
+         \/ (1 != 1 \/ k_map 0)
+            /\ (1 = 1
+                \/ (∀m. 
+                     f m
+                      (\r. 
+                        fxs 0
+                         (\x2. 
+                           MAP (recMAP - 1) (_l - 1) f (\u. \k_pred. k_pred (x2 - 1))
+                            (\r2. k_map (r + r2)))))))
+        /\ (x = 0
+            \/ (0 != 1 \/ k_map 0)
+               /\ (0 = 1
+                   \/ (∀m. 
+                        f m
+                         (\r. 
+                           fxs 0
+                            (\x2. 
+                              MAP (recMAP - 1) (_l - 1) f (\u. \k_pred. k_pred (x2 - 1))
+                               (\r2. k_map (r + r2)))))))).
+XX recXX _l ttttt flag fl k_xx =v
+  recXX > 0
+  /\ (flag != 1
+      \/ (∀sssss. 
+           sssss < 1 * ttttt + 1 \/ sssss < (-1) * ttttt + 1 \/ sssss < 1
+           \/ (∀recMAP. 
+                recMAP < 8 + 1 * ttttt \/ recMAP < 8 + (-1) * ttttt
+                \/ recMAP < 8
+                \/ MAP recMAP _l (\x. \k_compose. k_compose (1 + (2 + x))) fl k_xx)))
+     /\ (flag = 1
+         \/ (∀sssss. 
+              sssss < 1 * ttttt + 1 \/ sssss < (-1) * ttttt + 1 \/ sssss < 1
+              \/ XX (recXX - 1) _l sssss 1 fl k_xx)).
+
+%ENV
+MAP : recMAP50:int ->
+       _l51:int ->
+        (t52:int ->
+          (t53:int -> bool[_l51 + -1 * recMAP50 <= -10 /\ _l51 >= 0 /\ recMAP50 >= 11]) ->
+           bool[_l51 + -1 * recMAP50 < -9 /\ _l51 >= 0 /\ recMAP50 > 10]) ->
+         (t56:int ->
+           (t57:int -> bool[_l51 + -1 * t57 <= 0 /\ t57 + -1 * _l51 <= 0]) ->
+            bool[_l51 + -1 * recMAP50 < -9 /\ _l51 >= 0 /\ t56 = 0]) ->
+          (t60:int -> bool[true]) -> bool[_l51 + -1 * recMAP50 < -9 /\ _l51 >= 0].
+XX : recXX122:int ->
+      _l123:int ->
+       ttttt124:int ->
+        flag125:int ->
+         (t126:int ->
+           (t127:int ->
+             bool[_l123 + -1 * t127 <= 0 /\ t127 + -1 * _l123 <= 0 /\ _l123 >= 0 /\ flag125 = 1
+                  /\ recXX122 >= 7
+                  /\ _l123 + -1 * ttttt124 <= -2
+                  \/ t127 >= 0 /\ recXX122 >= 8 + t127 /\ ttttt124 >= 1 + t127 /\ flag125 = 0
+                     /\ _l123 = t127]) ->
+            bool[(_l123 + -1 * ttttt124 < -1 \/ flag125 <= 0) /\ _l123 >= 0 /\ recXX122 > 6
+                 /\ flag125 < 2
+                 /\ (flag125 > 0 \/ recXX122 > 7)
+                 /\ _l123 + -1 * ttttt124 < 0]) ->
+          (t130:int -> bool[true]) ->
+           bool[(_l123 + -1 * ttttt124 < -1 \/ flag125 <= 0) /\ _l123 >= 0 /\ recXX122 > 6
+                /\ flag125 < 2
+                /\ (flag125 > 0 \/ recXX122 > 7)
+                /\ _l123 + -1 * ttttt124 < 0].
+

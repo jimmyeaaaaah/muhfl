@@ -1,0 +1,119 @@
+%HES
+Sentry =v
+  ∀t. 
+   ∀t2. 
+    (t <= 0
+     \/ (∀sssss. 
+          sssss < 1 * t + 1 \/ sssss < (-1) * t + 1 \/ sssss < 1
+          \/ (∀recX_APP_DOWN. 
+               recX_APP_DOWN < 8 + 1 * 0 \/ recX_APP_DOWN < 8 + (-1) * 0
+               \/ recX_APP_DOWN < 8 + 1 * t
+               \/ recX_APP_DOWN < 8 + (-1) * t
+               \/ recX_APP_DOWN < 8
+               \/ X_APP_DOWN recX_APP_DOWN t sssss 0 (\u. \k_main. k_main t)
+                   (\x. true))))
+    /\ (t > 0
+        \/ (t2 >= 0
+            \/ (∀sssss. 
+                 sssss < 1 * t2 + 1 \/ sssss < (-1) * t2 + 1 \/ sssss < 1
+                 \/ (∀recX_APP_UP. 
+                      recX_APP_UP < 8 + 1 * 0 \/ recX_APP_UP < 8 + (-1) * 0
+                      \/ recX_APP_UP < 8 + 1 * t2
+                      \/ recX_APP_UP < 8 + (-1) * t2
+                      \/ recX_APP_UP < 8
+                      \/ X_APP_UP recX_APP_UP t2 sssss 0 (\u. \k_main. k_main t2)
+                          (\x. true))))
+           /\ (t2 < 0 \/ true)).
+CHECK f k_check =v f 0 (\x. (x != 0 \/ k_check 1) /\ (x = 0 \/ k_check 0)).
+DOWN recDOWN _x fx k_down =v
+  recDOWN > 0
+  /\ CHECK fx
+      (\b. 
+        (b != 1 \/ k_down 0)
+        /\ (b = 1
+            \/ fx 0
+                (\x. DOWN (recDOWN - 1) (_x - 1) (\u. \k_pred. k_pred (x - 1)) k_down))).
+UP recUP _x fx k_up =v
+  recUP > 0
+  /\ CHECK fx
+      (\b. 
+        (b != 1 \/ k_up 0)
+        /\ (b = 1
+            \/ fx 0 (\x. UP (recUP - 1) (_x + 1) (\u. \k_succ. k_succ (x + 1)) k_up))).
+X_APP_DOWN recX_APP_DOWN _x ttttt flag x k_x_App_Down =v
+  recX_APP_DOWN > 0
+  /\ (flag != 1
+      \/ (∀sssss. 
+           sssss < 1 * ttttt + 1 \/ sssss < (-1) * ttttt + 1 \/ sssss < 1
+           \/ (∀recDOWN. 
+                recDOWN < 8 + 1 * ttttt \/ recDOWN < 8 + (-1) * ttttt
+                \/ recDOWN < 8
+                \/ DOWN recDOWN _x x k_x_App_Down)))
+     /\ (flag = 1
+         \/ (∀sssss. 
+              sssss < 1 * ttttt + 1 \/ sssss < (-1) * ttttt + 1 \/ sssss < 1
+              \/ X_APP_DOWN (recX_APP_DOWN - 1) _x sssss 1 x k_x_App_Down)).
+X_APP_UP recX_APP_UP _x ttttt flag x k_x_App_Up =v
+  recX_APP_UP > 0
+  /\ (flag != 1
+      \/ (∀sssss. 
+           sssss < 1 * ttttt + 1 \/ sssss < (-1) * ttttt + 1 \/ sssss < 1
+           \/ (∀recUP. 
+                recUP < 8 + 1 * ttttt \/ recUP < 8 + (-1) * ttttt \/ recUP < 8
+                \/ UP recUP _x x k_x_App_Up)))
+     /\ (flag = 1
+         \/ (∀sssss. 
+              sssss < 1 * ttttt + 1 \/ sssss < (-1) * ttttt + 1 \/ sssss < 1
+              \/ X_APP_UP (recX_APP_UP - 1) _x sssss 1 x k_x_App_Up)).
+
+
+%ENV
+DOWN : recDOWN94:int ->
+        _x:int ->
+         (t96:int ->
+           (t97:int ->
+             bool[_x + -1 * recDOWN94 < -9 /\ t97 >= 0 /\ _x + -1 * t97 <= 0 /\ t97 + -1 * _x <= 0]) ->
+            bool[recDOWN94 > 7 /\ t96 = 0]) ->
+          (t100:int -> bool[true]) -> bool[recDOWN94 > 7].
+UP : recUP130:int ->
+      _x:int ->
+       (t132:int ->
+         (t133:int ->
+           bool[_x + -1 * t133 <= 0 /\ t133 + -1 * _x <= 0 /\ _x <= 0 /\ t133 + recUP130 > 9]) ->
+          bool[_x <= 0 /\ recUP130 > 9 /\ t132 = 0]) ->
+        (t136:int -> bool[true]) -> bool[_x <= 0 /\ recUP130 > 9].
+X_APP_DOWN : recX_APP_DOWN166:int ->
+              _x:int ->
+               ttttt168:int ->
+                flag169:int ->
+                 (t170:int ->
+                   (t171:int ->
+                     bool[(_x + -1 * ttttt168 < -1 \/ flag169 <= 0) /\ t171 + -1 * ttttt168 < 0
+                          /\ _x > 0
+                          /\ t171 + -1 * _x <= 0
+                          /\ _x + t171 * -1 <= 0]) ->
+                    bool[(flag169 > 0 \/ recX_APP_DOWN166 > 7) /\ _x > 0 /\ recX_APP_DOWN166 > 6
+                         /\ flag169 < 2]) ->
+                  (t174:int -> bool[true]) ->
+                   bool[(flag169 > 0 \/ recX_APP_DOWN166 > 7) /\ _x > 0 /\ recX_APP_DOWN166 > 6
+                        /\ flag169 < 2].
+X_APP_UP : recX_APP_UP206:int ->
+            _x:int ->
+             ttttt208:int ->
+              flag209:int ->
+               (t210:int ->
+                 (t211:int ->
+                   bool[ttttt208 >= 1 + -1 * t211 /\ recX_APP_UP206 >= 8 + -1 * t211 /\ 0 > t211
+                        /\ flag209 = 0
+                        /\ _x = t211
+                        \/ _x + -1 * t211 <= 0 /\ _x < 0 /\ t211 + -1 * _x <= 0 /\ flag209 = 1
+                           /\ -1 * t211 + -1 * ttttt208 <= -2
+                           /\ recX_APP_UP206 >= 7]) ->
+                  bool[(ttttt208 > 2 \/ flag209 <= 0) /\ _x < 0 /\ flag209 < 2
+                       /\ recX_APP_UP206 > 6
+                       /\ (flag209 > 0 \/ recX_APP_UP206 > 7)
+                       /\ ttttt208 > 1]) ->
+                (t214:int -> bool[true]) ->
+                 bool[(ttttt208 > 2 \/ flag209 <= 0) /\ _x < 0 /\ flag209 < 2 /\ recX_APP_UP206 > 6
+                      /\ (flag209 > 0 \/ recX_APP_UP206 > 7)
+                      /\ ttttt208 > 1].

@@ -1,0 +1,33 @@
+%HES
+Sentry =v
+  ∀x. ∀recF. recF < 2 + 1 * x \/ recF < 2 + -1 * x \/ recF < 2 \/ F recF x (\x2. x2 true).
+APP recAPP _x i h v k_app =v
+  recAPP >= 0 /\ (i < 0 \/ APP (recAPP - 1) _x (i - 1) h v k_app) /\ (i >= 0 \/ h v (\x. x k_app)).
+F recF x k_f =v
+  recF >= 0
+  /\ (x <= 0
+      \/ (∀x2. 
+           k_f
+            (\x3. 
+              ∀u. 
+               u < 1 + 1 * x \/ u < 1 + (-1) * x
+               /* \/ u < 1 + 1 * recF
+               \/ u < 1 + (-1) * recF */
+               \/ u < 1 + 1 * x2
+               \/ u < 1 + (-1) * x2
+               \/ u < 1
+               \/ F_e recF x x2 x3 u)))
+  /\ (x > 0 \/ k_f (\k_g. k_g)).
+F_e recF x x2 x3 u =v
+  ((∀recAPP. 
+     recAPP < 2 + 1 * (x - 1) \/ recAPP < 2 + -1 * (x - 1) \/ recAPP < 2 + 1 * x2
+     \/ recAPP < 2 + -1 * x2
+     \/ recAPP < 2
+     \/ APP recAPP u x2 (F (recF - 1)) (x - 1) x3)
+   \/ (∀recAPP. 
+        recAPP < 2 + 1 * (x - 1) \/ recAPP < 2 + -1 * (x - 1) \/ recAPP < 2 + 1 * x2
+        \/ recAPP < 2 + -1 * x2
+        \/ recAPP < 2
+        \/ APP recAPP (-u) x2 (F (recF - 1)) (x - 1) x3)
+   \/ F_e recF x x2 x3 (u - 1))
+  /\ u >= 0.

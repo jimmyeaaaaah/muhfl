@@ -37,6 +37,9 @@ val elim_mu_with_rec :
   bool ->
   (unit Id.t * [ `Int ] Id.t) list ->
   string ->
+  int ->
+  bool ref ->
+  bool -> 
   unit Hflmc2_syntax.Type.ty Hflz.t *
   unit Hflmc2_syntax.Type.ty Hflz.hes_rule list
 

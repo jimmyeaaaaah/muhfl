@@ -1,0 +1,61 @@
+%HES
+Sentry =v
+  ∀l. 
+   l < 0
+   \/ (∀sssss. 
+        sssss < 1 * l + 1 \/ sssss < (-1) * l + 1 \/ sssss < 1
+        \/ (∀recXX. 
+             recXX < 2 + 1 * 0 \/ recXX < 2 + (-1) * 0 \/ recXX < 2 + 1 * l \/ recXX < 2 + (-1) * l
+             \/ recXX < 2
+             \/ XX recXX sssss 0 (\k. k l))).
+
+FOLDR recFOLDR ttttt _l fe fl k =v
+  recFOLDR > 0
+  /\ fl
+      (\x. 
+        (x != 0 \/ k fe)
+        /\ (x = 0
+            \/ fl
+                (\x2. 
+                  ∀uu. 
+                   uu < 2 + 1 * ttttt \/ uu < 2 + (-1) * ttttt \/ uu < 2 + 1 * (x2 - 1)
+                   \/ uu < 2 + (-1) * (x2 - 1)
+                   \/ uu < 2
+                   \/ FOLDR_764_e recFOLDR uu fe k x2 ttttt))).
+
+FOLDR_764_e recFOLDR uu fe k x ttttt =v
+  ((∀sssss. 
+     sssss < 1 * ttttt + 1 \/ sssss < (-1) * ttttt + 1 \/ sssss < 1
+     \/ FOLDR (recFOLDR - 1) sssss uu fe (\k2. k2 (x - 1)) (\fr. fr (k (\k2. k2))))
+   \/ (∀sssss. 
+        sssss < 1 * ttttt + 1 \/ sssss < (-1) * ttttt + 1 \/ sssss < 1
+        \/ FOLDR (recFOLDR - 1) sssss (-uu) fe (\k2. k2 (x - 1)) (\fr. fr (k (\k2. k2))))
+   \/ FOLDR_764_e recFOLDR (uu - 1) fe k x ttttt)
+  /\ uu >= 0.
+
+XX recXX ttttt flag fl =v
+  recXX > 0
+  /\ (flag != 1
+      \/ (∀uu. uu < 2 + 1 * ttttt \/ uu < 2 + (-1) * ttttt \/ uu < 2 \/ XX_765_e uu fl ttttt))
+     /\ (flag = 1
+         \/ (∀sssss. 
+              sssss < 1 * ttttt + 1 \/ sssss < (-1) * ttttt + 1 \/ sssss < 1
+              \/ XX (recXX - 1) sssss 1 fl)).
+
+XX_765_e uu fl ttttt =v
+  ((∀sssss. 
+     sssss < 1 * ttttt + 1 \/ sssss < (-1) * ttttt + 1 \/ sssss < 1
+     \/ (∀recFOLDR. 
+          recFOLDR < 2 + 1 * uu \/ recFOLDR < 2 + (-1) * uu \/ recFOLDR < 2 + 1 * ttttt
+          \/ recFOLDR < 2 + (-1) * ttttt
+          \/ recFOLDR < 2
+          \/ FOLDR recFOLDR sssss uu (\k. k) fl (\x. x true)))
+   \/ (∀sssss. 
+        sssss < 1 * ttttt + 1 \/ sssss < (-1) * ttttt + 1 \/ sssss < 1
+        \/ (∀recFOLDR. 
+             recFOLDR < 2 + 1 * -uu \/ recFOLDR < 2 + (-1) * -uu \/ recFOLDR < 2 + 1 * ttttt
+             \/ recFOLDR < 2 + (-1) * ttttt
+             \/ recFOLDR < 2
+             \/ FOLDR recFOLDR sssss (-uu) (\k. k) fl (\x. x true)))
+   \/ XX_765_e (uu - 1) fl ttttt)
+  /\ uu >= 0.

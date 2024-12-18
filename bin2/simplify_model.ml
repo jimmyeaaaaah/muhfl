@@ -2,13 +2,8 @@ open Core
 
 let read_file file = In_channel.(with_file file ~f:input_all)
 
-let get_random_file_name () =
-  let r = Random.int 0x10000000 in
-  Printf.sprintf "/tmp/%d.smt2" r
-  
 let save_file buf = 
-  Random.self_init ();
-  let file = get_random_file_name () in
+  let file = Hflmc2_util.gen_temp_filename "/tmp/" ".smt2" in
   let oc = Stdlib.open_out file in
   Printf.fprintf oc "%s" buf;
   Stdlib.close_out oc;
@@ -30,7 +25,7 @@ let simplify_body acc args body =
   let body = acc ^ "\n" ^ args ^ "\n" ^ (to_string to_simplify) ^ "\n(apply (then ctx-solver-simplify qe ctx-solver-simplify ctx-solver-simplify ctx-solver-simplify))" in
   let s = (save_file body) in
   (* print_endline @@ "file: " ^ s; *)
-  let output_path = get_random_file_name () in
+  let output_path = Hflmc2_util.gen_temp_filename "/tmp/" ".smt2" in
   (* these options prevent z3 from using "let" expressions *)
   ignore @@ Unix.system @@ !Hflmc2_options.z3_path ^ " " ^ s ^ " pp.max_depth=10000 pp.min-alias-size=10000 > " ^ output_path;
   let s = read_file output_path in

@@ -1,0 +1,154 @@
+%HES
+Sentry =v
+  ∀n. 
+   ∀sssss. 
+    sssss < 1 * n + 1 \/ sssss < (-1) * n + 1 \/ sssss < 1
+    \/ (∀recXX. 
+         recXX < 8 + 1 * 0 \/ recXX < 8 + (-1) * 0 \/ recXX < 8 + 1 * n
+         \/ recXX < 8 + (-1) * n
+         \/ recXX < 8
+         \/ XX recXX sssss 0 (\u. \k_main. k_main n) 0 (\x. true)).
+APP recAPP _recF65 ttttt fi h fv u k_app =v
+  recAPP > 0
+  /\ fi 0
+      (\x. 
+        (x < 0
+         \/ (1 != 1
+             \/ PRED fi
+                 (\ttttt2. 
+                   \x2. 
+                    ∀sssss. 
+                     sssss < 1 * ttttt + 1 \/ sssss < (-1) * ttttt + 1
+                     \/ sssss < 1
+                     \/ APP (recAPP - 1) _recF65 sssss x2 h fv 0 k_app))
+            /\ (1 = 1
+                \/ (∀sssss. 
+                     sssss < 1 * ttttt + 1 \/ sssss < (-1) * ttttt + 1
+                     \/ sssss < 1
+                     \/ h sssss fv 0 k_app)))
+        /\ (x >= 0
+            \/ (0 != 1
+                \/ PRED fi
+                    (\ttttt2. 
+                      \x2. 
+                       ∀sssss. 
+                        sssss < 1 * ttttt + 1 \/ sssss < (-1) * ttttt + 1
+                        \/ sssss < 1
+                        \/ APP (recAPP - 1) _recF65 sssss x2 h fv 0 k_app))
+               /\ (0 = 1
+                   \/ (∀sssss. 
+                        sssss < 1 * ttttt + 1 \/ sssss < (-1) * ttttt + 1
+                        \/ sssss < 1
+                        \/ h sssss fv 0 k_app)))).
+F recF ttttt fx u k_f =v
+  recF > 0
+  /\ fx 0
+      (\x. 
+        (x <= 0
+         \/ (1 != 1
+             \/ (∀m. 
+                  PRED fx
+                   (\ttttt2. 
+                     \x2. 
+                      ∀sssss. 
+                       sssss < 1 * m + 1 \/ sssss < (-1) * m + 1
+                       \/ sssss < 1 * ttttt2 + 1
+                       \/ sssss < (-1) * ttttt2 + 1
+                       \/ sssss < 1 * ttttt + 1
+                       \/ sssss < (-1) * ttttt + 1
+                       \/ sssss < 1
+                       \/ (∀recAPP. 
+                            recAPP < 8 + 1 * 0 \/ recAPP < 8 + (-1) * 0
+                            \/ recAPP < 8 + 1 * m
+                            \/ recAPP < 8 + 1 * ttttt2
+                            \/ recAPP < 8 + 1 * ttttt
+                            \/ recAPP < 8 + (-1) * m
+                            \/ recAPP < 8 + (-1) * ttttt2
+                            \/ recAPP < 8 + (-1) * ttttt
+                            \/ recAPP < 8
+                            \/ APP recAPP recF sssss (\u2. \k_f2. k_f2 m)
+                                (F (recF - 1)) x2 0 k_f))))
+            /\ (1 = 1 \/ k_f 0))
+        /\ (x > 0
+            \/ (0 != 1
+                \/ (∀m. 
+                     PRED fx
+                      (\ttttt2. 
+                        \x2. 
+                         ∀sssss. 
+                          sssss < 1 * m + 1 \/ sssss < (-1) * m + 1
+                          \/ sssss < 1 * ttttt2 + 1
+                          \/ sssss < (-1) * ttttt2 + 1
+                          \/ sssss < 1 * ttttt + 1
+                          \/ sssss < (-1) * ttttt + 1
+                          \/ sssss < 1
+                          \/ (∀recAPP. 
+                               recAPP < 8 + 1 * 0 \/ recAPP < 8 + (-1) * 0
+                               \/ recAPP < 8 + 1 * m
+                               \/ recAPP < 8 + 1 * ttttt2
+                               \/ recAPP < 8 + 1 * ttttt
+                               \/ recAPP < 8 + (-1) * m
+                               \/ recAPP < 8 + (-1) * ttttt2
+                               \/ recAPP < 8 + (-1) * ttttt
+                               \/ recAPP < 8
+                               \/ APP recAPP recF sssss (\u2. \k_f2. k_f2 m)
+                                   (F (recF - 1)) x2 0 k_f))))
+               /\ (0 = 1 \/ k_f 0))).
+PRED fx k_pred =v
+  fx 0
+   (\x. 
+     ∀sssss. 
+      sssss < 1 * x + 1 \/ sssss < (-1) * x + 1 \/ sssss < 1 * (x - 1) + 1
+      \/ sssss < (-1) * (x - 1) + 1
+      \/ sssss < 1
+      \/ k_pred sssss (\u. \k_pred2. k_pred2 (x - 1))).
+
+XX recXX ttttt flag fn u k_xx =v
+  recXX > 0
+  /\ (flag != 1
+      \/ (∀sssss. 
+           sssss < 1 * ttttt + 1 \/ sssss < (-1) * ttttt + 1 \/ sssss < 1
+           \/ (∀recF. 
+                recF < 8 + 1 * 0 \/ recF < 8 + (-1) * 0 \/ recF < 8 + 1 * ttttt
+                \/ recF < 8 + (-1) * ttttt
+                \/ recF < 8
+                \/ F recF sssss fn 0 k_xx)))
+     /\ (flag = 1
+         \/ (∀sssss. 
+              sssss < 1 * ttttt + 1 \/ sssss < (-1) * ttttt + 1 \/ sssss < 1
+              \/ XX (recXX - 1) sssss 1 fn 0 k_xx)).
+
+%ENV
+APP : recAPP75:int ->
+       _recF6576:int ->
+        ttttt77:int ->
+         (t78:int ->
+           (t79:int -> bool[t79 + -1 * recAPP75 < -7 /\ _recF6576 > 6 /\ recAPP75 > 6]) ->
+            bool[ttttt77 > 2 /\ recAPP75 > 6 /\ _recF6576 > 8 /\ t78 = 0]) ->
+          (t82:int ->
+            (t83:int ->
+              (t84:int -> bool[t84 + -1 * _recF6576 < -8 /\ ttttt77 + -1 * t82 < 0]) -> bool[true]) ->
+             t87:int ->
+              (t88:int -> bool[true]) -> bool[ttttt77 > 2 /\ recAPP75 > 6 /\ _recF6576 > 8]) ->
+           (t91:int ->
+             (t92:int -> bool[t92 + -1 * _recF6576 < -8]) ->
+              bool[ttttt77 > 2 /\ recAPP75 > 6 /\ _recF6576 > 8]) ->
+            u95:int ->
+             (t96:int -> bool[true]) -> bool[ttttt77 > 2 /\ recAPP75 > 6 /\ _recF6576 > 8].
+F : recF248:int ->
+     ttttt249:int ->
+      (t250:int -> (t251:int -> bool[t251 + -1 * recF248 < -7]) -> bool[recF248 > 7 /\ t250 = 0]) ->
+       u254:int -> (t255:int -> bool[true]) -> bool[recF248 > 7].
+XX : recXX402:int ->
+      ttttt403:int ->
+       flag404:int ->
+        (t405:int ->
+          (t406:int ->
+            bool[flag404 = 1 /\ t406 + -1 * ttttt403 <= -2 /\ ttttt403 >= 1 /\ recXX402 >= 7
+                 \/ recXX402 >= 8 + -1 * t406 /\ recXX402 >= 8 + t406 /\ ttttt403 >= 1 + -1 * t406
+                    /\ ttttt403 >= 1 + t406
+                    /\ flag404 = 0]) ->
+           bool[(flag404 > 0 \/ recXX402 > 7) /\ recXX402 > 6 /\ flag404 < 2]) ->
+         u409:int ->
+          (t410:int -> bool[true]) ->
+           bool[(flag404 > 0 \/ recXX402 > 7) /\ recXX402 > 6 /\ flag404 < 2].

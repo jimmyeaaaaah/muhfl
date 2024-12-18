@@ -1,0 +1,115 @@
+/*
+%HES
+Sentry =v
+  ∀n. 
+   ∀sssss. 
+    sssss < 1 * n + 1 \/ sssss < -1 * n + 1 \/ sssss < 1
+    \/ (∀recXX. 
+         recXX < 2 + 1 * 0 \/ recXX < 2 + -1 * 0 \/ recXX < 2 + 1 * n \/ recXX < 2 + -1 * n
+         \/ recXX < 2
+         \/ XX recXX sssss 0 (\k. k n)).
+APP recAPP uu fi h fv k =v
+  recAPP > 0
+  /\ fi
+      (\x. (x < 0 \/ fi (\x2. APP (recAPP - 1) uu (\k2. k2 (x2 - 1)) h fv k)) /\ (x >= 0 \/ h fv k)).
+F recF fx k =v
+  recF > 0
+  /\ fx
+      (\x. 
+        (x <= 0
+         \/ (∀m. 
+              fx
+               (\x2. 
+                 ∀sssss. 
+                  sssss < 1 * m + 1 \/ sssss < -1 * m + 1 \/ sssss < 1 * x2 + 1
+                  \/ sssss < -1 * x2 + 1
+                  \/ sssss < 1 * (x2 - 1) + 1
+                  \/ sssss < -1 * (x2 - 1) + 1
+                  \/ sssss < 1
+                  \/ (∀recAPP. 
+                       recAPP < 2 + 1 * m \/ recAPP < 2 + 1 * x2 \/ recAPP < 2 + 1 * (x2 - 1)
+                       \/ recAPP < 2 + -1 * m
+                       \/ recAPP < 2 + -1 * x2
+                       \/ recAPP < 2 + -1 * (x2 - 1)
+                       \/ recAPP < 2
+                       \/ (∀uu. 
+                               uu < 1 + 1 * recF
+                            \/ uu < 1 + (-1) * recF
+                            \/ uu < 1
+                            \/ F_e recF uu k m x2 recAPP)))))
+        /\ (x > 0 \/ k)).
+
+F_e recF uu k m x recAPP =v
+  (   APP recAPP uu (\k2. k2 m) (F (recF - 1)) (\k2. k2 (x - 1)) k
+   \/ APP recAPP (-uu) (\k2. k2 m) (F (recF - 1)) (\k2. k2 (x - 1)) k
+   \/ F_e recF (uu - 1) k m x recAPP)
+  /\ uu >= 0.
+
+XX recXX ttttt flag fn =v
+  recXX > 0
+  /\ (flag != 1
+      \/ (∀sssss. 
+           sssss < 1 * ttttt + 1 \/ sssss < -1 * ttttt + 1 \/ sssss < 1
+           \/ (∀recF. recF < 2 + 1 * ttttt \/ recF < 2 + -1 * ttttt \/ recF < 2 \/ F recF fn true)))
+  /\ (flag = 1
+      \/ (∀sssss. 
+           sssss < 1 * ttttt + 1 \/ sssss < -1 * ttttt + 1 \/ sssss < 1
+           \/ XX (recXX - 1) sssss 1 fn)).
+*/
+
+%HES
+Sentry =v
+  ∀n. 
+   ∀sssss. 
+    sssss < 1 * n + 1 \/ sssss < -1 * n + 1 \/ sssss < 1
+    \/ (∀recXX. 
+         recXX < 2 + 1 * 0 \/ recXX < 2 + -1 * 0 \/ recXX < 2 + 1 * n \/ recXX < 2 + -1 * n
+         \/ recXX < 2
+         \/ XX recXX sssss 0 (\k. k n)).
+APP recAPP uu fi h fv k =v
+  recAPP > 0
+  /\ fi
+      (\x. (x < 0 \/ fi (\x2. APP (recAPP - 1) uu (\k2. k2 (x2 - 1)) h fv k)) /\ (x >= 0 \/ h fv k)).
+F recF fx k =v
+  recF > 0
+  /\ fx
+      (\x. 
+        (x <= 0
+         \/ (∀m. 
+              fx
+               (\x2. 
+                 ∀sssss. 
+                  sssss < 1 * m + 1 \/ sssss < -1 * m + 1 \/ sssss < 1 * x2 + 1
+                  \/ sssss < -1 * x2 + 1
+                  \/ sssss < 1 * (x2 - 1) + 1
+                  \/ sssss < -1 * (x2 - 1) + 1
+                  \/ sssss < 1
+                  \/ (∀recAPP. 
+                       recAPP < 2 + 1 * m \/ recAPP < 2 + 1 * x2 \/ recAPP < 2 + 1 * (x2 - 1)
+                       \/ recAPP < 2 + -1 * m
+                       \/ recAPP < 2 + -1 * x2
+                       \/ recAPP < 2 + -1 * (x2 - 1)
+                       \/ recAPP < 2
+                       \/ (∀uu. 
+                               uu < 1 + 1 * recF
+                            \/ uu < 1 + (-1) * recF
+                            \/ uu < 1
+                            \/ F_e recF uu k recAPP (\k2. k2 m) (F (recF - 1)) (\k2. k2 (x - 1)))))))
+        /\ (x > 0 \/ k)).
+
+F_e recF uu k recAPP k1 k2 k3 =v
+  (   APP recAPP uu k1 k2 k3 k
+   \/ APP recAPP (-uu) k1 k2 k3 k
+   \/ F_e recF (uu - 1) k recAPP k1 k2 k3)
+  /\ uu >= 0.
+
+XX recXX ttttt flag fn =v
+  recXX > 0
+  /\ (flag != 1
+      \/ (∀sssss. 
+           sssss < 1 * ttttt + 1 \/ sssss < -1 * ttttt + 1 \/ sssss < 1
+           \/ (∀recF. recF < 2 + 1 * ttttt \/ recF < 2 + -1 * ttttt \/ recF < 2 \/ F recF fn true)))
+  /\ (flag = 1
+      \/ (∀sssss. 
+           sssss < 1 * ttttt + 1 \/ sssss < -1 * ttttt + 1 \/ sssss < 1
+           \/ XX (recXX - 1) sssss 1 fn)).

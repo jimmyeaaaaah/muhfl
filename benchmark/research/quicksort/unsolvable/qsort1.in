@@ -1,0 +1,46 @@
+/* z3, hoiceでtimeout. weak subtypeではunknown */
+%HES
+Sentry =v
+  ∀n. 
+   n <= 0
+   \/ (∀x. 
+        ∀recPAR. 
+         ∀recPAR2. 
+             recPAR < 2 + 1 * (n - 1)
+          \/ recPAR < 2 + (-1) * (n - 1)
+          \/ recPAR < 2
+          \/ recPAR2 < 2 + 1 * (n - 1)
+          \/ recPAR2 < 2 + (-1) * (n - 1)
+          \/ recPAR2 < 2
+          \/ PAR recPAR recPAR2 x 0 0 (n - 1) true).
+
+PAR recPAR recPAR2 x l r xs k_par =v
+  recPAR > 0 /\ recPAR2 > 0
+  /\ (xs > 0 \/
+    (l > 0 \/
+      (r > 0 \/ k_par)
+      /\ (r <= 0
+          \/ (∀x2. 
+              ∀recPAR1443_2_n. 
+                    recPAR1443_2_n < 1 + 1 * (r - 1)
+                \/ recPAR1443_2_n < 1 + (-1) * (r - 1)
+                \/ recPAR1443_2_n < 1
+                \/ PAR recPAR1443_2_n (recPAR2 - 1) x2 0 0 (r - 1) k_par)))
+    /\ (l <= 0
+        \/ (∀x2. 
+            ∀recPAR1443_2_n. 
+              recPAR1443_2_n < 1 + 1 * (l - 1) \/ recPAR1443_2_n < 1 + (-1) * (l - 1)
+              \/ recPAR1443_2_n < 1
+              \/ PAR recPAR1443_2_n (recPAR2 - 1) x2 0 0 (l - 1)
+                  ((r > 0 \/ k_par)
+                  /\ (r <= 0
+                      \/ (∀x3. 
+                            ∀recPAR1443_2_n2. 
+                              recPAR1443_2_n2 < 1 + 1 * (r - 1)
+                              \/ recPAR1443_2_n2 < 1 + (-1) * (r - 1)
+                              \/ recPAR1443_2_n2 < 1
+                              \/ PAR recPAR1443_2_n2 (recPAR2 - 1) x3 0 0 (r - 1) k_par))))))
+  /\ (xs <= 0 \/ (
+      PAR (recPAR - 1) recPAR2 x (1 + l) r (xs - 1) k_par /\
+      PAR (recPAR - 1) recPAR2 x l (1 + r) (xs - 1) k_par
+  )).

@@ -1,0 +1,9 @@
+paper/fair_nonterm/loop_CPS.in
+paper/fair_nonterm/murase_closure_buggy.in
+paper/fair_nonterm/update_max_CPS.in
+paper/nonterm/foldr_nonterm.in
+paper/nonterm/indirectHO_e.in
+paper/nonterm/indirect_e.in
+paper/nonterm/passing_cond.in
+prog2/koskinen-1.in
+prog2/koskinen-4.in

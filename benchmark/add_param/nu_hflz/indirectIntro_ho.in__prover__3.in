@@ -1,0 +1,118 @@
+%HES
+Sentry =v
+  ∀n. 
+   ∀sssss. 
+    sssss < 1 * n + 1 \/ sssss < (-1) * n + 1 \/ sssss < 1
+    \/ (∀recXX. 
+         recXX < 8 + 1 * 0 \/ recXX < 8 + (-1) * 0 \/ recXX < 8 + 1 * n
+         \/ recXX < 8 + (-1) * n
+         \/ recXX < 8
+         \/ XX recXX sssss 0 (\u. \k_main. k_main n) 0 (\x. true)).
+APP recAPP ttttt fi h fv u k_app =v
+  recAPP > 0
+  /\ fi 0
+      (\x. 
+        (x < 0
+         \/ (1 != 1
+             \/ PRED fi
+                 (\ttttt2. 
+                   \x2. 
+                    ∀sssss. 
+                     sssss < 1 * ttttt + 1 \/ sssss < (-1) * ttttt + 1
+                     \/ sssss < 1
+                     \/ APP (recAPP - 1) sssss x2 h fv 0 k_app))
+            /\ (1 = 1
+                \/ (∀sssss. 
+                     sssss < 1 * ttttt + 1 \/ sssss < (-1) * ttttt + 1
+                     \/ sssss < 1
+                     \/ h sssss fv 0 k_app)))
+        /\ (x >= 0
+            \/ (0 != 1
+                \/ PRED fi
+                    (\ttttt2. 
+                      \x2. 
+                       ∀sssss. 
+                        sssss < 1 * ttttt + 1 \/ sssss < (-1) * ttttt + 1
+                        \/ sssss < 1
+                        \/ APP (recAPP - 1) sssss x2 h fv 0 k_app))
+               /\ (0 = 1
+                   \/ (∀sssss. 
+                        sssss < 1 * ttttt + 1 \/ sssss < (-1) * ttttt + 1
+                        \/ sssss < 1
+                        \/ h sssss fv 0 k_app)))).
+F recF ttttt fx u k_f =v
+  recF > 0
+  /\ fx 0
+      (\x. 
+        (x <= 0
+         \/ (1 != 1
+             \/ (∀m. 
+                  PRED fx
+                   (\ttttt2. 
+                     \x2. 
+                      ∀sssss. 
+                       sssss < 1 * m + 1 \/ sssss < (-1) * m + 1
+                       \/ sssss < 1 * ttttt2 + 1
+                       \/ sssss < (-1) * ttttt2 + 1
+                       \/ sssss < 1 * ttttt + 1
+                       \/ sssss < (-1) * ttttt + 1
+                       \/ sssss < 1
+                       \/ (∀recAPP. 
+                            recAPP < 8 + 1 * 0 \/ recAPP < 8 + (-1) * 0
+                            \/ recAPP < 8 + 1 * m
+                            \/ recAPP < 8 + 1 * ttttt2
+                            \/ recAPP < 8 + 1 * ttttt
+                            \/ recAPP < 8 + (-1) * m
+                            \/ recAPP < 8 + (-1) * ttttt2
+                            \/ recAPP < 8 + (-1) * ttttt
+                            \/ recAPP < 8
+                            \/ APP recAPP sssss (\u2. \k_f2. k_f2 m)
+                                (F (recF - 1)) x2 0 k_f))))
+            /\ (1 = 1 \/ k_f 0))
+        /\ (x > 0
+            \/ (0 != 1
+                \/ (∀m. 
+                     PRED fx
+                      (\ttttt2. 
+                        \x2. 
+                         ∀sssss. 
+                          sssss < 1 * m + 1 \/ sssss < (-1) * m + 1
+                          \/ sssss < 1 * ttttt2 + 1
+                          \/ sssss < (-1) * ttttt2 + 1
+                          \/ sssss < 1 * ttttt + 1
+                          \/ sssss < (-1) * ttttt + 1
+                          \/ sssss < 1
+                          \/ (∀recAPP. 
+                               recAPP < 8 + 1 * 0 \/ recAPP < 8 + (-1) * 0
+                               \/ recAPP < 8 + 1 * m
+                               \/ recAPP < 8 + 1 * ttttt2
+                               \/ recAPP < 8 + 1 * ttttt
+                               \/ recAPP < 8 + (-1) * m
+                               \/ recAPP < 8 + (-1) * ttttt2
+                               \/ recAPP < 8 + (-1) * ttttt
+                               \/ recAPP < 8
+                               \/ APP recAPP sssss (\u2. \k_f2. k_f2 m)
+                                   (F (recF - 1)) x2 0 k_f))))
+               /\ (0 = 1 \/ k_f 0))).
+PRED fx k_pred =v
+  fx 0
+   (\x. 
+     ∀sssss. 
+      sssss < 1 * x + 1 \/ sssss < (-1) * x + 1 \/ sssss < 1 * (x - 1) + 1
+      \/ sssss < (-1) * (x - 1) + 1
+      \/ sssss < 1
+      \/ k_pred sssss (\u. \k_pred2. k_pred2 (x - 1))).
+XX recXX ttttt flag fn u k_xx =v
+  recXX > 0
+  /\ (flag != 1
+      \/ (∀sssss. 
+           sssss < 1 * ttttt + 1 \/ sssss < (-1) * ttttt + 1 \/ sssss < 1
+           \/ (∀recF. 
+                recF < 8 + 1 * 0 \/ recF < 8 + (-1) * 0 \/ recF < 8 + 1 * ttttt
+                \/ recF < 8 + (-1) * ttttt
+                \/ recF < 8
+                \/ F recF sssss fn 0 k_xx)))
+     /\ (flag = 1
+         \/ (∀sssss. 
+              sssss < 1 * ttttt + 1 \/ sssss < (-1) * ttttt + 1 \/ sssss < 1
+              \/ XX (recXX - 1) sssss 1 fn 0 k_xx)).

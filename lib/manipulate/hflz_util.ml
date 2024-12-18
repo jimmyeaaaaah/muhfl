@@ -94,7 +94,7 @@ let get_hflz_type phi =
 
 open Hflmc2_syntax
 
-let assign_unique_variable_id (hes : Type.simple_ty Hflz.hes_rule list): Type.simple_ty Hflz.hes_rule list * (unit Id.t * Type.simple_ty Type.arg Id.t) list =
+let assign_unique_variable_id_sub id_change_map env phi =
   let to_ty ty = match ty with
     | Type.TyInt -> failwith "ty"
     | TySigma s -> s
@@ -103,11 +103,6 @@ let assign_unique_variable_id (hes : Type.simple_ty Hflz.hes_rule list): Type.si
     | Type.TyInt -> `Int
     | TySigma _ -> failwith "arithty"
   in
-  let id_change_map = ref [] in
-  let global_env =
-    List.map (fun {Hflz.var; _} ->
-      (Id.remove_ty var, {Id.name = var.name; id = Id.gen_id (); ty = Type.TySigma (var.Id.ty)})
-    ) hes in
   let rec go env body = match body with
     | Hflz.Bool b -> Hflz.Bool b
     | Var v -> begin
@@ -143,9 +138,22 @@ let assign_unique_variable_id (hes : Type.simple_ty Hflz.hes_rule list): Type.si
     end
     | Op (o, ps) -> Op (o, List.map (go_arith env) ps)
   in
+  go env phi
+
+let assign_unique_variable_id (hes : Type.simple_ty Hflz.hes_rule list): Type.simple_ty Hflz.hes_rule list * (unit Id.t * Type.simple_ty Type.arg Id.t) list =
+  let to_ty ty = match ty with
+    | Type.TyInt -> failwith "ty"
+    | TySigma s -> s
+  in
+  let id_change_map = ref [] in
+  let global_env =
+    List.map (fun {Hflz.var; _} ->
+      (Id.remove_ty var, {Id.name = var.name; id = Id.gen_id (); ty = Type.TySigma (var.Id.ty)})
+    ) hes in
+  
   let hes =
     List.map (fun {Hflz.var; body; fix} ->
-      let body = go global_env body in
+      let body = assign_unique_variable_id_sub id_change_map global_env body in
       let var =
         match List.find_all (fun (e, _) -> Id.eq e var) global_env with
         | [(_, v)] -> {v with ty = to_ty v.Id.ty}
@@ -332,3 +340,65 @@ let log_string
   Logs.set_reporter r;
   log_fun (fun m -> m ?header "%s" s);
   Logs.set_reporter reporter
+
+let get_hflz_size_sub phi =
+  let sum = List.fold_left (fun acc e -> acc + e) 0 in
+  let rec go phi = match phi with
+    | Var _ | Bool _ -> 1
+    | Or (p1, p2) -> go p1 + go p2 + 1
+    | And (p1, p2) -> go p1 + go p2 + 1
+    | Abs (_, p) -> go p + 1
+    | Forall (_, p) -> go p + 1
+    | Exists (_, p) -> go p + 1
+    | App (p1, p2) -> go p1 + go p2 + 1
+    | Arith a -> go_arith a
+    | Pred (_, as') -> (List.map go_arith as' |> sum) + 1
+  and go_arith a = match a with
+    | Var _ | Int _ -> 1
+    | Op (_, as') -> (List.map go_arith as' |> sum) + 1
+  in
+  go phi
+
+let get_hflz_size hes =
+  let sum = List.fold_left (fun acc e -> acc + e) 0 in
+  hes
+  |> Hflz.merge_entry_rule
+  |> List.map (fun {body;_} -> get_hflz_size_sub body)
+  |> sum
+
+let extract_bound_predicates x phi =
+  let rec to_ors phi = match phi with
+    | Hflz.Or (p1, p2) -> to_ors p1 @ to_ors p2
+    | _ -> [phi]
+  in
+  let extract_pred p =
+    match p with
+    | Hflz.Pred (op, [Var x'; a]) when (op = Le || op = Lt) && Id.eq x' x -> begin
+      match a with
+      | Int _ -> Some a
+      | Op (Add, [Op (Mult, [n; f]); Int _]) | Op (Add, [Int _; Op (Mult, [n; f])]) -> begin
+        if IdSet.is_empty (Hflz.fvs (Arith n)) &&
+            (not @@ IdSet.exists ~f:(Id.eq x) (Hflz.fvs (Arith f))) then
+          Some a
+        else None
+      end
+      | _ -> None
+    end
+    | _ -> None
+  in
+  let ors = to_ors phi in
+  let preds = List.filter_map extract_pred ors in
+  if List.length ors = List.length preds then Some preds else None
+
+let decompose_ors x phi =
+  match phi with
+  | Hflz.Or (predicates, body) -> begin
+    let preds = extract_bound_predicates x predicates in
+    match preds with
+    | Some preds ->
+      let _, body = beta IdMap.empty body in
+      if (not @@ IdSet.exists ~f:(Id.eq x) (Hflz.fvs body)) then Some (preds, body)
+      else None
+    | None -> None
+  end
+  | _ -> None

@@ -1,0 +1,4 @@
+%HES
+S =v ∃x. Even x /\ Odd x.
+Even x =u x = 0 \/ (x > 0 /\ Even (x - 2)).
+Odd x =u x = 1 \/ (x > 0 /\ Odd (x - 2)).

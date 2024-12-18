@@ -1,12 +1,15 @@
 type solver_type = Iwayama | Katsura | Suzuki | Mochi
 type first_order_solver_type = FptProverRecLimit
 
+let remove_temporary_files = ref false
+
 type approx_parameter = {
   coe1: int;
   coe2: int;
   add_arg_coe1: int;
   add_arg_coe2: int;
   lexico_pair_number: int;
+  counter_decrement: int;
 }
 
 type options = 
@@ -42,6 +45,13 @@ type options =
     z3_path: string;
     no_temp_files: bool;
     try_weak_subtype: bool;
+    backend_options: string;
+    remove_disjunctions: bool;
+    only_remove_disjunctions: bool;
+    reordering_of_arguments: bool;
+    add_nu_level_extra_arguments: bool;
+    no_eliminate_unused_arguments: bool;
+    disjunction_selector: bool;
   }
 let get_solver solver_name = 
   match solver_name with
@@ -85,7 +95,8 @@ let get_approx_parameter coe add_arg_coe default_lexicographic_order =
     coe2 = 1;
     add_arg_coe1 = 0;
     add_arg_coe2 = 0;
-    lexico_pair_number = 1
+    lexico_pair_number = 1;
+    counter_decrement = 0
   } in
   match coe, add_arg_coe, default_lexicographic_order with
   | ("", "", 1) ->
@@ -108,6 +119,7 @@ let get_approx_parameter coe add_arg_coe default_lexicographic_order =
       coe2 = coe2;
       add_arg_coe1 = add_arg_coe1;
       add_arg_coe2 = add_arg_coe2;
-      lexico_pair_number = lexico_pair_number
+      lexico_pair_number = lexico_pair_number;
+      counter_decrement = 0
     }, true
   end

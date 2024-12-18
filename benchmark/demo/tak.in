@@ -1,0 +1,9 @@
+%HES
+Sentry  =v ∃x_689.∃x_678.∃x_661.TAK x_661 x_678 x_689 (\x_671.false).
+TAK x_3 y z k_tak_52 =v
+  (y >= x_3
+   \/ TAK (z - 1) x_3 y
+       (\x_694.
+         TAK (y - 1) z x_3
+          (\x_684.TAK (x_3 - 1) y z (\x_668.TAK x_668 x_684 x_694 k_tak_52))))
+  /\ (y < x_3 \/ k_tak_52 z).

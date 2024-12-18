@@ -1,0 +1,85 @@
+%HES
+Sentry =v
+  ∀x. 
+    (x >= 0 \/
+      (∀sssss. 
+        sssss < 1 * x + 1 \/ sssss < (-1) * x + 1 \/ sssss < 1 * 1 + 1
+        \/ sssss < (-1) * 1 + 1
+        \/ sssss < 1
+        \/ Walk__q_p sssss (\k__q_p. k__q_p x) App122__q_p true)
+    )
+    /\ 
+    (x < 0 \/
+      (∀sssss. 
+          sssss < 1 * x + 1 \/ sssss < (-1) * x + 1
+          \/ sssss < 1 * 1 + 1
+          \/ sssss < (-1) * 1 + 1
+          \/ sssss < 1
+             /* App122__q_p is inlined */
+          \/ Run__q_p sssss (\k__q_p. k__q_p x) true)
+    )
+    .
+  
+App122__q_p x2___q_p k2__q_p =v
+  x2___q_p
+   (\x. k2__q_p (\k3__q_p. k3__q_p (x - 1))).
+
+Walk__q_p ttttt x___q_p f__q_p k__q_p =v
+  ∀sssss. 
+   sssss < 1 * ttttt + 1 \/ sssss < (-1) * ttttt + 1 \/ sssss < 1
+   \/ Check__q_p x___q_p
+       (\x. 
+         ∀recWalk125__q_p. 
+          recWalk125__q_p < 8 + 1 * ttttt \/ recWalk125__q_p < 8 + (-1) * ttttt
+          \/ recWalk125__q_p < 8 + 1 * x
+          \/ recWalk125__q_p < 8 + (-1) * x
+          \/ recWalk125__q_p < 8
+          \/ Walk125__q_p recWalk125__q_p k__q_p x___q_p f__q_p x).
+
+Walk125__q_p recWalk125__q_p k__q_p x___q_p f__q_p b =v
+  recWalk125__q_p > 0
+  /\ (b != 1 \/ k__q_p)
+  /\ (b = 1
+      \/ f__q_p x___q_p
+          (\x2__q_p. 
+            Check__q_p x2__q_p
+              (Walk125__q_p (recWalk125__q_p - 1) k__q_p x2__q_p f__q_p))).
+
+Run__q_p ttttt x___q_p k__q_p =v
+  ∀sssss. 
+   sssss < 1 * ttttt + 1 \/ sssss < (-1) * ttttt + 1 \/ sssss < 1
+   \/ Check__q_p x___q_p
+       (\x. 
+         ∀recRun127__q_p. 
+          recRun127__q_p < 8 + 1 * ttttt \/ recRun127__q_p < 8 + (-1) * ttttt
+          \/ recRun127__q_p < 8 + 1 * x
+          \/ recRun127__q_p < 8 + (-1) * x
+          \/ recRun127__q_p < 8
+          \/ Run127__q_p recRun127__q_p k__q_p x___q_p x).
+
+Run127__q_p recRun127__q_p k__q_p x___q_p b =v
+  recRun127__q_p > 0
+  /\ (b != 1 \/ k__q_p)
+  /\ (b = 1
+      \/ App122__q_p x___q_p
+          (\x2__q_p. 
+            App122__q_p x2__q_p
+              (\x3__q_p. 
+                Check__q_p x3__q_p
+                  (Run127__q_p (recRun127__q_p - 1) k__q_p x3__q_p)))).
+
+Check__q_p x___q_p k__q_p =v x___q_p (\x. (x >= 0 \/ k__q_p 1) /\ (x < 0 \/ k__q_p 0)).
+
+%ENV
+Walk125__q_p : recWalk125__q_p144:int ->
+                (bool[true]) ->
+                 ((t146:int -> bool[false]) -> bool[false]) ->
+                  (((t149:int -> bool[true]) -> bool[true]) ->
+                    (((t152:int -> bool[true]) -> bool[false]) -> bool[true]) -> bool[false]) ->
+                   b157:int -> bool[recWalk125__q_p144 > 8 /\ b157 > 0 /\ b157 < 2].
+Run127__q_p : recRun127__q_p230:int ->
+               (bool[true]) ->
+                ((t232:int -> bool[t232 + -1 * recRun127__q_p230 <= -9 /\ recRun127__q_p230 > 9]) ->
+                  bool[recRun127__q_p230 > 9]) ->
+                 b235:int ->
+                  bool[(b235 > 0 \/ recRun127__q_p230 > 9) /\ recRun127__q_p230 > 8 /\ b235 < 2].

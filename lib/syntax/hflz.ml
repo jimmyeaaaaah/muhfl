@@ -159,20 +159,20 @@ let fvs_with_type : 'ty t -> 'ty Type.arg Id.t list = fun hes ->
 
 exception CannotNegate
 (* 全体を一度にnegateすると単純なやり方でよい。 *)
-let negate_formula (formula : Type.simple_ty t) = 
-  let is_negation_of f1 f2 =
-    let rec neg (f : 'a t) : 'a t = match f with
-      | Bool b -> Bool (not b)
-      | Or  (f1, f2) -> And (neg f1, neg f2)
-      | And (f1, f2) -> Or  (neg f1, neg f2)
-      | Forall (x, f) -> Exists (x, neg f)
-      | Exists (x, f) -> Forall (x, neg f)
-      | Pred (p, args) -> Pred (Formula.negate_pred p, args)
-      | Arith _ | Var _ | Abs _ | App _ -> raise CannotNegate in
-    try
-      neg f1 = f2
-    with CannotNegate -> false
-  in
+let is_negation_of f1 f2 =
+  let rec neg (f : 'a t) : 'a t = match f with
+    | Bool b -> Bool (not b)
+    | Or  (f1, f2) -> And (neg f1, neg f2)
+    | And (f1, f2) -> Or  (neg f1, neg f2)
+    | Forall (x, f) -> Exists (x, neg f)
+    | Exists (x, f) -> Forall (x, neg f)
+    | Pred (p, args) -> Pred (Formula.negate_pred p, args)
+    | Arith _ | Var _ | Abs _ | App _ -> raise CannotNegate in
+  try
+    neg f1 = f2
+  with CannotNegate -> false
+
+let negate_formula (formula : Type.simple_ty t) =
   let rec go formula = match formula with
     | Bool b -> Bool (not b)
     | Var x  -> Var x

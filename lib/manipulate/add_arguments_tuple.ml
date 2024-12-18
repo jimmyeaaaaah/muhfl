@@ -4,7 +4,8 @@ open Hflmc2_syntax
 let log_src = Logs.Src.create "Pa_tuple"
 module Log = (val Logs.src_log @@ log_src)
 
-(* let log_string = Hflz_util.log_string Log.info *)
+let log_string = Hflz_util.log_string Log.info
+let log_warn = Hflz_util.log_string Log.warn
 
 type 'ty thflz2 =
   | Bool   of bool
@@ -289,9 +290,18 @@ let rec convert_ty ty =
         | EFVar _ -> assert false
       end
       (* TODO: 型が未確定のときの処理 *)
-      (* | T.TVar _ -> print_endline "conver_ty: tvar"; TBool
-      | T.TBool -> print_endline "conver_ty: tbool"; TBool *)
-      | _ -> assert false
+      (* | _ -> assert false *)
+      | T.TBool ->
+        log_warn "conver_ty: tbool (no applications?)";
+        let argtys = List.map (fun argty -> convert_ty argty, T.dummy_use_flag) argtys |> List.rev in 
+        let bodyty = convert_ty ty in
+        TFunc (argtys, bodyty)
+      | T.TVar _ ->
+        failwith "conver_ty: tvar (not used variable?)"
+        (* ; let argtys = List.map (fun argty -> convert_ty argty, T.dummy_use_flag) argtys |> List.rev in 
+        let bodyty = convert_ty ty in
+        TFunc (argtys, bodyty) *)
+      | T.TInt -> failwith "convert_ty: TInt"
     in
     go [] ty
   end
@@ -350,7 +360,14 @@ let to_thflz2 rules =
           end
           | _ -> assert false
         end
-        | _ -> assert false
+        | _ ->
+          let p = to_thflz2_sub phi in
+          log_string "ptype";
+          log_string @@ T.show_ptype ty_abs;
+          let ty_abs = convert_ty ty_abs in
+          log_string "ptype2";
+          log_string @@ show_ptype2 ty_abs;
+          Abs (List.rev args, p, ty_abs)
       in
       go [] phi
     end
@@ -465,5 +482,84 @@ let check_thflz2_type rules =
     (fun {var; body; _} ->
       let ty = go global_env body in
       assert (var.Id.ty = ty);
+    )
+    rules
+
+let rec to_hflz_ty ty =
+  match ty with
+  | TBool -> Type.TyBool ()
+  | TFunc (argtys, ty) ->
+    let argtys = List.map (fun (argty, _) -> to_hflz_argty argty) argtys in
+    let ty = to_hflz_ty ty in
+    let rec go_argtys bodyty argtys =
+      match argtys with
+      | ty::tys -> Type.TyArrow ((Id.gen ty), go_argtys bodyty tys)
+      | [] -> bodyty
+    in
+    go_argtys ty argtys
+  | _ -> assert false
+and to_hflz_argty ty =
+  match ty with
+  | TInt -> Type.TyInt
+  | TVar _ -> assert false
+  | _ -> Type.TySigma (to_hflz_ty ty)
+
+let rec to_hflz env body =
+  match body with
+  | Bool b -> Hflz.Bool b
+  | Var v -> begin
+    match List.find_all (fun x -> Id.eq x v) env with
+    | [v'] ->
+      Hflz.Var v'
+    | [] -> failwith "to_hflz: not found"
+    | _ -> failwith "to_hflz: multiple found"
+  end
+  | Or (p1, p2) -> Hflz.Or (to_hflz env p1, to_hflz env p2)
+  | And (p1, p2) -> Hflz.And (to_hflz env p1, to_hflz env p2)
+  | Abs (xs, p, _) ->
+    let xs: unit Type.ty Type.arg Id.t list = List.map (fun x -> {x with Id.ty=to_hflz_argty x.Id.ty}) xs in
+    let rec go_abs p xs =
+      match xs with
+      | x::xs -> Hflz.Abs (x, go_abs p xs)
+      | [] -> p
+    in
+    let env = env @
+      (List.filter_map (fun x -> match x.Id.ty with Type.TySigma ty -> Some {x with ty} | _ -> None) xs) in
+    let p = to_hflz env p in
+    go_abs p xs
+  | Forall (x, p) ->
+    Forall ({x with ty=Type.TyInt}, to_hflz env p)
+  | Exists (x, p) ->
+    Exists ({x with ty=Type.TyInt}, to_hflz env p)
+  | App (p, xs) ->
+    let rec go_app p xs =
+      match xs with
+      | x::xs -> Hflz.App (go_app p xs, x)
+      | [] -> p
+    in
+    let p = to_hflz env p in
+    let xs = List.map (to_hflz env) xs in
+    go_app p (List.rev xs)
+  | Arith a -> Hflz.Arith (go_arith a)
+  | Pred (p, as') -> Hflz.Pred (p, List.map go_arith as')
+and go_arith a =
+  match a with
+  | Int i -> Int i
+  | Var v -> Var {v with ty=`Int}
+  | Op (op, as') -> Op (op, List.map go_arith as')
+  
+let to_hes rules =
+  let pred_vars =
+    List.map
+      (fun {var; _} -> {var with ty = to_hflz_ty var.ty})
+      rules in
+  List.mapi
+    (fun i {fix; body; var = _} ->
+      let body = to_hflz pred_vars body in
+      let fix = match fix with
+        | Least -> Fixpoint.Least
+        | Greatest -> Fixpoint.Greatest in
+      let var = List.nth pred_vars i in
+      {Hflz.var; fix; body}
     )
     rules

@@ -4,6 +4,8 @@ module Formula = Hflmc2_syntax.Formula
 open Hflz
 open Hflmc2_syntax.Print
 
+let formula_margin = ref 100
+
 let id : 'ty Id.t t =
   fun ppf x -> Fmt.pf ppf "%s" (Id.to_string x)
 let simple_ty_ = simple_ty_
@@ -216,9 +218,7 @@ module FptProverHes = struct
         (Fmt.list hflz_hes_rule') rules
     
   let save_hes_to_file ?(file) hes =
-    Random.self_init ();
-    let r = Random.int 0x10000000 in
-    let file = match file with Some s -> s | None -> Printf.sprintf "/tmp/%s-%d.smt2" "nuonly" r in
+    let file = match file with Some s -> s | None -> Hflmc2_util.gen_temp_filename "/tmp/nuonly-" ".smt2" in
     let oc = open_out file in
     let fmt = Format.formatter_of_out_channel oc in
     Format.pp_set_margin fmt 1000;
@@ -304,13 +304,11 @@ module MachineReadable = struct
         (Fmt.list (hflz_hes_rule' format_ty_ show_forall without_id)) rules
     
   let save_hes_to_file ?(file) ?(without_id=false) show_forall hes =
-    Random.self_init ();
-    let r = Random.int 0x10000000 in
-    let file = match file with Some s -> s | None -> Printf.sprintf "/tmp/%s-%d.smt2" "nuonly" r in
+    let file = match file with Some s -> s | None -> Hflmc2_util.gen_temp_filename "/tmp/nuonly-" ".smt2" in
     let oc = open_out file in
     let fmt = Format.formatter_of_out_channel oc in
     (* Format.pp_set_margin fmt 1000; *)
-    Format.pp_set_margin fmt 80;
+    Format.pp_set_margin fmt !formula_margin;
     Printf.fprintf oc "%%HES\n" ;
     hflz_hes' Hflmc2_syntax.Print.simple_ty_ show_forall without_id fmt hes;
     Format.pp_print_flush fmt ();
@@ -402,13 +400,11 @@ module AsProgram = struct
       Fmt.string ppf "let () = print_string (string_of_bool (sentry ()))"
     
   let save_hes_to_file ?(file) ?(without_id=false) hes =
-    Random.self_init ();
-    let r = Random.int 0x10000000 in
-    let file = match file with Some s -> s | None -> Printf.sprintf "/tmp/%s-%d.ml" "nuonly" r in
+    let file = match file with Some s -> s | None -> Hflmc2_util.gen_temp_filename "/tmp/nuonly-" ".ml" in
     let oc = open_out file in
     let fmt = Format.formatter_of_out_channel oc in
     (* Format.pp_set_margin fmt 1000; *)
-    Format.pp_set_margin fmt 80;
+    Format.pp_set_margin fmt !formula_margin;
     hflz_hes' Hflmc2_syntax.Print.simple_ty_ true without_id fmt hes;
     Format.pp_print_flush fmt ();
     close_out oc;
@@ -417,14 +413,23 @@ end
 
 let show_hflz = Hflmc2_util.fmt_string (hflz Hflmc2_syntax.Print.simple_ty_)
 let show_hflz_full v = Hflz.show (fun fmt ty_ -> Hflmc2_syntax.Type.pp_simple_ty fmt ty_) v
-let show_hes hes : string =
-  List.map
-    (fun rule ->
-      "{" ^
-      "fix: " ^ (Hflmc2_syntax.Fixpoint.show rule.fix) ^ "\n" ^
-      (* "var: " ^ (Id.show Hflmc2_syntax.Type.pp_simple_ty rule.var) ^ "\n" ^ *)
-      "var: (" ^ (Id.to_string rule.var) ^ " : " ^ Hflmc2_util.fmt_string simple_ty rule.var.ty ^ ")\n" ^
-      "body: " ^ (show_hflz rule.body) ^ 
-      "}"
-    ) hes
-  |> String.concat "\n"
+let show_hes ?(readable=false) hes : string =
+  if readable then
+    "{" ^
+    (List.map
+      (fun rule ->
+        Id.to_string rule.var ^ " =" ^ (match rule.fix with Hflmc2_syntax.Fixpoint.Greatest -> "ν" | Least -> "μ") ^ " " ^ (show_hflz rule.body)
+      )
+      hes
+    |> String.concat ";\n") ^ "}"
+  else
+    List.map
+      (fun rule ->
+        "{" ^
+        "fix: " ^ (Hflmc2_syntax.Fixpoint.show rule.fix) ^ "\n" ^
+        (* "var: " ^ (Id.show Hflmc2_syntax.Type.pp_simple_ty rule.var) ^ "\n" ^ *)
+        "var: (" ^ (Id.to_string rule.var) ^ " : " ^ Hflmc2_util.fmt_string simple_ty rule.var.ty ^ ")\n" ^
+        "body: " ^ (show_hflz rule.body) ^ 
+        "}"
+      ) hes
+    |> String.concat "\n"

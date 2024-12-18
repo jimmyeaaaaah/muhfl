@@ -1,0 +1,28 @@
+/* not solvable */
+%HES
+Sentry =v
+  ∀x. 
+   ∀sssss. 
+    sssss < 1 * x + 1 \/ sssss < (-1) * x + 1 \/ sssss < 1
+    \/ (∀recX. 
+         recX < 2 + 1 * 0 \/ recX < 2 + (-1) * 0 \/ recX < 2 + 1 * x \/ recX < 2 + (-1) * x
+         \/ recX < 2
+         \/ X recX x sssss 0 (\k_m. k_m x)).
+
+MC recMC _n fn k_mc =v
+  recMC > 0
+  /\ fn
+      (\x. 
+           (x <= 100 \/ fn (\x2. k_mc (_n - 10) (\k_sub_int. k_sub_int (x2 - 10))))
+        /\ (x > 100  \/ fn (\x2. MC (recMC - 1) (_n + 11) (\k_add_int. k_add_int (x2 + 11)) (\_r. \r. MC (recMC - 1) _r r k_mc)))).
+
+X recX _n ttttt flag fn =v
+  recX > 0
+  /\ (flag != 1
+      \/ (∀recMC. 
+           recMC < 20 + 1 * ttttt \/ recMC < 20 + (-1) * ttttt \/ recMC < 20
+           \/ MC recMC _n fn (\_x. \x. x (\x2. true))))
+     /\ (flag = 1
+         \/ (∀sssss. 
+              sssss < 1 * ttttt + 1 \/ sssss < (-1) * ttttt + 1 \/ sssss < 1
+              \/ X (recX - 1) _n sssss 1 fn)).

@@ -1,0 +1,184 @@
+%HES
+Sentry =v
+  ∀x. 
+   ∀recF. 
+    recF < 2 + 1 * 2 \/ recF < 2 + (-1) * 2 \/ recF < 2 \/ x < 2 + 1 * 2 \/ x < 2 + (-1) * 2
+    \/ x < 2
+    \/ Exists x recF.
+Exists x recF =v
+  (recF >= 2 + 1 * x /\ recF >= 2 + -1 * x /\ recF >= 2
+   /\ (∀recF2. 
+        recF2 < 2 + 1 * x \/ recF2 < 2 + (-1) * x \/ recF2 < 2
+        \/ F recF2 recF x (\x2. x2 0 (\x3. false)))
+   \/ -recF >= 2 + 1 * x /\ -recF >= 2 + -1 * x /\ -recF >= 2
+      /\ (∀recF2. 
+           recF2 < 2 + 1 * x \/ recF2 < 2 + (-1) * x \/ recF2 < 2 + 1 * -recF
+           \/ recF2 < 2 + (-1) * -recF
+           \/ recF2 < 2
+           \/ F recF2 (-recF) x (\x2. x2 0 (\x3. false)))
+   \/ recF >= 2 + 1 * -x /\ recF >= 2 + -1 * -x /\ recF >= 2
+      /\ (∀recF2. 
+           recF2 < 2 + 1 * -x \/ recF2 < 2 + (-1) * -x \/ recF2 < 2
+           \/ F recF2 recF (-x) (\x2. x2 0 (\x3. false)))
+   \/ -recF >= 2 + 1 * -x /\ -recF >= 2 + -1 * -x /\ -recF >= 2
+      /\ (∀recF2. 
+           recF2 < 2 + 1 * -x \/ recF2 < 2 + (-1) * -x \/ recF2 < 2 + 1 * -recF
+           \/ recF2 < 2 + (-1) * -recF
+           \/ recF2 < 2
+           \/ F recF2 (-recF) (-x) (\x2. x2 0 (\x3. false)))
+   \/ Exists (x - 1) recF
+   \/ Exists x (recF - 1))
+  /\ x >= 0 /\ recF >= 0.
+APP recAPP recAPP2 _recF i v h u k_app =v
+  recAPP > 0
+  /\ (recAPP2 <= 0 \/ i >= 0 /\ (∀uu. APP (recAPP - 1) (recAPP2 - 1) uu (i - 1) v h 0 k_app)
+      \/ i < 0 /\ h v (\x. x 0 k_app)).
+F recF recF2 x k_f =v
+  recF > 0
+  /\ (recF2 <= 0
+      \/ x > 0
+         /\ (∀x2. 
+              x2 < 2 + 1 * (recF2 - 1) \/ x2 < 2 + (-1) * (recF2 - 1) \/ x2 < 2 + 1 * (x - 1)
+              \/ x2 < 2 + (-1) * (x - 1)
+              \/ x2 < 2 + 1 * 2
+              \/ x2 < 2 + (-1) * 2
+              \/ x2 < 2 + 1 * (2 + -1 * (x - 1))
+              \/ x2 < 2 + (-1) * (2 + -1 * (x - 1))
+              \/ x2 < 2 + 1 * (2 + 1 * (x - 1))
+              \/ x2 < 2 + (-1) * (2 + 1 * (x - 1))
+              \/ x2 < 2
+              \/ F_e recF recF2 x k_f x2)
+      \/ x <= 0 /\ k_f (\u. \k_g. k_g 0)).
+F_e recF recF2 x k_f x2 =v
+  (k_f
+    (\u. 
+      \k_app. 
+       ∀recAPP. 
+        recAPP < 2 + 1 * u \/ recAPP < 2 + (-1) * u \/ recAPP < 2 + 1 * (recF2 - 1)
+        \/ recAPP < 2 + (-1) * (recF2 - 1)
+        \/ recAPP < 2 + 1 * (x - 1)
+        \/ recAPP < 2 + (-1) * (x - 1)
+        \/ recAPP < 2 + 1 * x2
+        \/ recAPP < 2 + (-1) * x2
+        \/ recAPP < 2 + 1 * 2
+        \/ recAPP < 2 + (-1) * 2
+        \/ recAPP < 2 + 1 * (2 + -1 * x2)
+        \/ recAPP < 2 + (-1) * (2 + -1 * x2)
+        \/ recAPP < 2 + 1 * (2 + 1 * x2)
+        \/ recAPP < 2 + (-1) * (2 + 1 * x2)
+        \/ recAPP < 2 + 1 * (2 + -1 * (x - 1))
+        \/ recAPP < 2 + (-1) * (2 + -1 * (x - 1))
+        \/ recAPP < 2 + 1 * (2 + 1 * (x - 1))
+        \/ recAPP < 2 + (-1) * (2 + 1 * (x - 1))
+        \/ recAPP < 2 + 1 * (2 + -1 * u)
+        \/ recAPP < 2 + (-1) * (2 + -1 * u)
+        \/ recAPP < 2 + 1 * (2 + 1 * u)
+        \/ recAPP < 2 + (-1) * (2 + 1 * u)
+        \/ recAPP < 2
+        \/ F_e2 recF recF2 x x2 u k_app recAPP)
+   \/ k_f
+       (\u. 
+         \k_app. 
+          ∀recAPP. 
+           recAPP < 2 + 1 * u \/ recAPP < 2 + (-1) * u \/ recAPP < 2 + 1 * (recF2 - 1)
+           \/ recAPP < 2 + (-1) * (recF2 - 1)
+           \/ recAPP < 2 + 1 * (x - 1)
+           \/ recAPP < 2 + (-1) * (x - 1)
+           \/ recAPP < 2 + 1 * -x2
+           \/ recAPP < 2 + (-1) * -x2
+           \/ recAPP < 2 + 1 * 2
+           \/ recAPP < 2 + (-1) * 2
+           \/ recAPP < 2 + 1 * (2 + -1 * -x2)
+           \/ recAPP < 2 + (-1) * (2 + -1 * -x2)
+           \/ recAPP < 2 + 1 * (2 + 1 * -x2)
+           \/ recAPP < 2 + (-1) * (2 + 1 * -x2)
+           \/ recAPP < 2 + 1 * (2 + -1 * (x - 1))
+           \/ recAPP < 2 + (-1) * (2 + -1 * (x - 1))
+           \/ recAPP < 2 + 1 * (2 + 1 * (x - 1))
+           \/ recAPP < 2 + (-1) * (2 + 1 * (x - 1))
+           \/ recAPP < 2 + 1 * (2 + -1 * u)
+           \/ recAPP < 2 + (-1) * (2 + -1 * u)
+           \/ recAPP < 2 + 1 * (2 + 1 * u)
+           \/ recAPP < 2 + (-1) * (2 + 1 * u)
+           \/ recAPP < 2
+           \/ F_e3 recF recF2 x x2 u k_app recAPP)
+   \/ F_e recF recF2 x k_f (x2 - 1))
+  /\ x2 >= 0.
+F_e2 recF recF2 x x2 u k_app recAPP =v
+  (recAPP >= 2 + 1 * u /\ recAPP >= 2 + -1 * u /\ recAPP >= 2 + 1 * (x - 1)
+   /\ recAPP >= 2 + -1 * (x - 1)
+   /\ recAPP >= 2 + 1 * x2
+   /\ recAPP >= 2 + -1 * x2
+   /\ recAPP >= 2
+   /\ (∀uu. 
+        ∀recAPP2. 
+         recAPP2 < 2 + 1 * u \/ recAPP2 < 2 + (-1) * u \/ recAPP2 < 2 + 1 * (x - 1)
+         \/ recAPP2 < 2 + (-1) * (x - 1)
+         \/ recAPP2 < 2 + 1 * x2
+         \/ recAPP2 < 2 + (-1) * x2
+         \/ recAPP2 < 2 + 1 * uu
+         \/ recAPP2 < 2 + (-1) * uu
+         \/ recAPP2 < 2 + 1 * (recF2 - 1)
+         \/ recAPP2 < 2 + (-1) * (recF2 - 1)
+         \/ recAPP2 < 2
+         \/ APP recAPP2 recAPP uu x2 (x - 1) (F (recF - 1) (recF2 - 1)) u k_app)
+   \/ -recAPP >= 2 + 1 * u /\ -recAPP >= 2 + -1 * u /\ -recAPP >= 2 + 1 * (x - 1)
+      /\ -recAPP >= 2 + -1 * (x - 1)
+      /\ -recAPP >= 2 + 1 * x2
+      /\ -recAPP >= 2 + -1 * x2
+      /\ -recAPP >= 2
+      /\ (∀uu. 
+           ∀recAPP2. 
+            recAPP2 < 2 + 1 * u \/ recAPP2 < 2 + (-1) * u \/ recAPP2 < 2 + 1 * (x - 1)
+            \/ recAPP2 < 2 + (-1) * (x - 1)
+            \/ recAPP2 < 2 + 1 * x2
+            \/ recAPP2 < 2 + (-1) * x2
+            \/ recAPP2 < 2 + 1 * uu
+            \/ recAPP2 < 2 + (-1) * uu
+            \/ recAPP2 < 2 + 1 * (recF2 - 1)
+            \/ recAPP2 < 2 + (-1) * (recF2 - 1)
+            \/ recAPP2 < 2 + 1 * -recAPP
+            \/ recAPP2 < 2 + (-1) * -recAPP
+            \/ recAPP2 < 2
+            \/ APP recAPP2 (-recAPP) uu x2 (x - 1) (F (recF - 1) (recF2 - 1)) u k_app)
+   \/ F_e2 recF recF2 x x2 u k_app (recAPP - 1))
+  /\ recAPP >= 0.
+F_e3 recF recF2 x x2 u k_app recAPP =v
+  (recAPP >= 2 + 1 * u /\ recAPP >= 2 + -1 * u /\ recAPP >= 2 + 1 * (x - 1)
+   /\ recAPP >= 2 + -1 * (x - 1)
+   /\ recAPP >= 2 + 1 * -x2
+   /\ recAPP >= 2 + -1 * -x2
+   /\ recAPP >= 2
+   /\ (∀uu. 
+        ∀recAPP2. 
+         recAPP2 < 2 + 1 * u \/ recAPP2 < 2 + (-1) * u \/ recAPP2 < 2 + 1 * (x - 1)
+         \/ recAPP2 < 2 + (-1) * (x - 1)
+         \/ recAPP2 < 2 + 1 * -x2
+         \/ recAPP2 < 2 + (-1) * -x2
+         \/ recAPP2 < 2 + 1 * uu
+         \/ recAPP2 < 2 + (-1) * uu
+         \/ recAPP2 < 2 + 1 * (recF2 - 1)
+         \/ recAPP2 < 2 + (-1) * (recF2 - 1)
+         \/ recAPP2 < 2
+         \/ APP recAPP2 recAPP uu (-x2) (x - 1) (F (recF - 1) (recF2 - 1)) u k_app)
+   \/ -recAPP >= 2 + 1 * u /\ -recAPP >= 2 + -1 * u /\ -recAPP >= 2 + 1 * (x - 1)
+      /\ -recAPP >= 2 + -1 * (x - 1)
+      /\ -recAPP >= 2 + 1 * -x2
+      /\ -recAPP >= 2 + -1 * -x2
+      /\ -recAPP >= 2
+      /\ (∀uu. 
+           ∀recAPP2. 
+            recAPP2 < 2 + 1 * u \/ recAPP2 < 2 + (-1) * u \/ recAPP2 < 2 + 1 * (x - 1)
+            \/ recAPP2 < 2 + (-1) * (x - 1)
+            \/ recAPP2 < 2 + 1 * -x2
+            \/ recAPP2 < 2 + (-1) * -x2
+            \/ recAPP2 < 2 + 1 * uu
+            \/ recAPP2 < 2 + (-1) * uu
+            \/ recAPP2 < 2 + 1 * (recF2 - 1)
+            \/ recAPP2 < 2 + (-1) * (recF2 - 1)
+            \/ recAPP2 < 2 + 1 * -recAPP
+            \/ recAPP2 < 2 + (-1) * -recAPP
+            \/ recAPP2 < 2
+            \/ APP recAPP2 (-recAPP) uu (-x2) (x - 1) (F (recF - 1) (recF2 - 1)) u k_app)
+   \/ F_e3 recF recF2 x x2 u k_app (recAPP - 1))
+  /\ recAPP >= 0.

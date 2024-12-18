@@ -1,0 +1,3 @@
+%HES
+Sentry =v ∀x. (x<0 \/ F (\k. k x)).
+F v =u v (\x. (x=0 \/ v (\x. F (\k.k(x-1))))).

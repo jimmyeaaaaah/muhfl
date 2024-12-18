@@ -1,0 +1,59 @@
+%HES
+Sentry =v
+  ∀l. 
+   (l < 0
+    \/ (∀m. 
+         ∀sssss. 
+          sssss < 1 * m + 1 \/ sssss < (-1) * m + 1 \/ sssss < 1 * l + 1
+          \/ sssss < (-1) * l + 1
+          \/ sssss < 1
+          \/ (∀recXX. 
+               recXX < 8 + 1 * 0 \/ recXX < 8 + (-1) * 0 \/ recXX < 8 + 1 * m
+               \/ recXX < 8 + 1 * l
+               \/ recXX < 8 + (-1) * m
+               \/ recXX < 8 + (-1) * l
+               \/ recXX < 8
+               \/ XX recXX sssss 0 (\u. \k_main. k_main m)
+                   (\u. \k_main. k_main l) (\x. x 0 (\x2. true)))))
+   /\ (l >= 0 \/ true).
+FOLDR recFOLDR h fe fl k_foldr =v
+  recFOLDR > 0
+  /\ fl 0
+      (\x. 
+        (x != 0
+         \/ (1 != 1 \/ k_foldr fe)
+            /\ (1 = 1
+                \/ (∀m. 
+                     fl 0
+                      (\x2. 
+                        FOLDR (recFOLDR - 1) h fe
+                         (\u. \k_pred. k_pred (x2 - 1))
+                         (\fr. h (\u. \k_foldr2. k_foldr2 m) fr k_foldr)))))
+        /\ (x = 0
+            \/ (0 != 1 \/ k_foldr fe)
+               /\ (0 = 1
+                   \/ (∀m. 
+                        fl 0
+                         (\x2. 
+                           FOLDR (recFOLDR - 1) h fe
+                            (\u. \k_pred. k_pred (x2 - 1))
+                            (\fr. h (\u. \k_foldr2. k_foldr2 m) fr k_foldr)))))).
+XX recXX ttttt flag fm fl k_xx =v
+  recXX > 0
+  /\ (flag != 1
+      \/ (∀sssss. 
+           sssss < 1 * ttttt + 1 \/ sssss < (-1) * ttttt + 1 \/ sssss < 1
+           \/ (∀recFOLDR. 
+                recFOLDR < 8 + 1 * ttttt \/ recFOLDR < 8 + (-1) * ttttt
+                \/ recFOLDR < 8
+                \/ FOLDR recFOLDR
+                    (\fm2. 
+                      \fn. 
+                       \k_sum. 
+                        fm2 0
+                         (\x. fn 0 (\x2. k_sum (\u. \k_add. k_add (x + x2)))))
+                    fm fl k_xx)))
+     /\ (flag = 1
+         \/ (∀sssss. 
+              sssss < 1 * ttttt + 1 \/ sssss < (-1) * ttttt + 1 \/ sssss < 1
+              \/ XX (recXX - 1) sssss 1 fm fl k_xx)).

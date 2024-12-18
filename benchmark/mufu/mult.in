@@ -1,0 +1,6 @@
+%HES
+S =v ∀x. ∀y. y < 0 \/ (∃r. Mult x y r).
+
+Mult x y r =u
+  (y = 0 /\ r = 0) \/
+  (∃s. y != 0 /\ r = x + s /\ Mult x (y - 1) s).

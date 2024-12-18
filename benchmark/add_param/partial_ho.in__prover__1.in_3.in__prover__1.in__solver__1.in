@@ -1,0 +1,142 @@
+/* pをinliningできるようにした. --aggで解ける */
+%HES
+Sentry =v
+  ∀n. 
+   ∀sssss. 
+    sssss < 1 * n + 1 \/ sssss < -1 * n + 1 \/ sssss < 1 * 1 + 1 \/ sssss < -1 * 1 + 1 \/ sssss < 1
+    \/ (∀recXX. 
+         recXX < 8 + 1 * 0 \/ recXX < 8 + -1 * 0 \/ recXX < 8 + 1 * n \/ recXX < 8 + 1 * 1
+         \/ recXX < 8 + -1 * n
+         \/ recXX < 8 + -1 * 1
+         \/ recXX < 8
+         \/ (∀u. 
+              u < 8 + 1 * 1 \/ u < 8 + -1 * 1 \/ u < 8 + 1 * n \/ u < 8 + -1 * n \/ u < 8
+              \/ Exists u n sssss recXX)).
+Exists u n sssss recXX =v
+  (XX recXX sssss u 0 (\u2. \k_main. k_main n)
+    (
+    \x. true)
+   \/ XX recXX sssss (-u) 0 (\u2. \k_main. k_main n)
+       (
+       \x. true)
+   \/ Exists (u - 1) n sssss recXX)
+  /\ u >= 0.
+F recF _x fx p k_f =v
+  recF > 0
+  /\ p _x fx
+      (\b. 
+        (b != 1
+         \/ fx 0
+             (\x. 
+               ∀u. 
+                u < 8 + 1 * (x - 1) \/ u < 8 + -1 * (x - 1) \/ u < 8 + 1 * (recF - 1)
+                \/ u < 8 + -1 * (recF - 1)
+                \/ u < 8
+                \/ F_e u recF p k_f x))
+        /\ (b = 1 \/ k_f 0)).
+F_e u recF p k_f x =v
+  (F (recF - 1) u (\u2. \k_pred. k_pred (x - 1)) p k_f
+   \/ F (recF - 1) (-u) (\u2. \k_pred. k_pred (x - 1)) p k_f
+   \/ F_e (u - 1) recF p k_f x)
+  /\ u >= 0.
+XX recXX ttttt _x flag fn k_xx =v
+  recXX > 0
+  /\ (flag != 1
+      \/ (∀recF. recF < 8 + 1 * ttttt \/ recF < 8 + -1 * ttttt \/ recF < 8 \/ F recF _x fn (\_x. \fn. \k_gt. fn 0 (\n2. (n2 <= 0 \/ k_gt 1) /\ (n2 > 0 \/ k_gt 0))) k_xx))
+  /\ (flag = 1 \/ XX (recXX - 1) ttttt _x 1 fn k_xx).
+
+/*
+/* おそらく解けない？ */
+%HES
+Sentry =v
+  ∀n. 
+   ∀sssss. 
+    sssss < 1 * n + 1 \/ sssss < -1 * n + 1 \/ sssss < 1 * 1 + 1 \/ sssss < -1 * 1 + 1 \/ sssss < 1
+    \/ (∀recXX. 
+         recXX < 8 + 1 * 0 \/ recXX < 8 + -1 * 0 \/ recXX < 8 + 1 * n \/ recXX < 8 + 1 * 1
+         \/ recXX < 8 + -1 * n
+         \/ recXX < 8 + -1 * 1
+         \/ recXX < 8
+         \/ (∀u. 
+              u < 8 + 1 * 1 \/ u < 8 + -1 * 1 \/ u < 8 + 1 * n \/ u < 8 + -1 * n \/ u < 8
+              \/ Exists u n sssss recXX)).
+Exists u n sssss recXX =v
+  (XX recXX sssss u 0 (\u2. \k_main. k_main n)
+    (\_x. \fn. \k1. \k2. fn 0 (\n2. (n2 <= 0 \/ k1) /\ (n2 > 0 \/ k2))) (
+    \x. true)
+   \/ XX recXX sssss (-u) 0 (\u2. \k_main. k_main n)
+       (\_x. \fn. \k1. \k2. fn 0 (\n2. (n2 <= 0 \/ k1) /\ (n2 > 0 \/ k2))) (
+       \x. true)
+   \/ Exists (u - 1) n sssss recXX)
+  /\ u >= 0.
+F recF _x fx p k_f =v
+  recF > 0
+  /\ p _x fx
+      (fx 0
+        (\x. 
+          ∀u. 
+          u < 8 + 1 * (x - 1) \/ u < 8 + -1 * (x - 1) \/ u < 8 + 1 * (recF - 1)
+          \/ u < 8 + -1 * (recF - 1)
+          \/ u < 8
+          \/ F_e u recF p k_f x))
+      (k_f 0).
+F_e u recF p k_f x =v
+  (F (recF - 1) u (\u2. \k_pred. k_pred (x - 1)) p k_f
+   \/ F (recF - 1) (-u) (\u2. \k_pred. k_pred (x - 1)) p k_f
+   \/ F_e (u - 1) recF p k_f x)
+  /\ u >= 0.
+XX recXX ttttt _x flag fn p k_xx =v
+  recXX > 0
+  /\ (flag != 1
+      \/ (∀recF. recF < 8 + 1 * ttttt \/ recF < 8 + -1 * ttttt \/ recF < 8 \/ F recF _x fn p k_xx))
+  /\ (flag = 1 \/ XX (recXX - 1) ttttt _x 1 fn p k_xx).
+*/
+
+/*
+/* pをinliningできない。解けない */
+%HES
+Sentry =v
+  ∀n. 
+   ∀sssss. 
+    sssss < 1 * n + 1 \/ sssss < -1 * n + 1 \/ sssss < 1 * 1 + 1 \/ sssss < -1 * 1 + 1 \/ sssss < 1
+    \/ (∀recXX. 
+         recXX < 8 + 1 * 0 \/ recXX < 8 + -1 * 0 \/ recXX < 8 + 1 * n \/ recXX < 8 + 1 * 1
+         \/ recXX < 8 + -1 * n
+         \/ recXX < 8 + -1 * 1
+         \/ recXX < 8
+         \/ (∀u. 
+              u < 8 + 1 * 1 \/ u < 8 + -1 * 1 \/ u < 8 + 1 * n \/ u < 8 + -1 * n \/ u < 8
+              \/ Exists u n sssss recXX)).
+Exists u n sssss recXX =v
+  (XX recXX sssss u 0 (\u2. \k_main. k_main n)
+    (\_x. \fn. \k_gt. fn 0 (\n2. (n2 <= 0 \/ k_gt 1) /\ (n2 > 0 \/ k_gt 0))) (
+    \x. true)
+   \/ XX recXX sssss (-u) 0 (\u2. \k_main. k_main n)
+       (\_x. \fn. \k_gt. fn 0 (\n2. (n2 <= 0 \/ k_gt 1) /\ (n2 > 0 \/ k_gt 0))) (
+       \x. true)
+   \/ Exists (u - 1) n sssss recXX)
+  /\ u >= 0.
+F recF _x fx p k_f =v
+  recF > 0
+  /\ p _x fx
+      (\b. 
+        (b != 1
+         \/ fx 0
+             (\x. 
+               ∀u. 
+                u < 8 + 1 * (x - 1) \/ u < 8 + -1 * (x - 1) \/ u < 8 + 1 * (recF - 1)
+                \/ u < 8 + -1 * (recF - 1)
+                \/ u < 8
+                \/ F_e u recF p k_f x))
+        /\ (b = 1 \/ k_f 0)).
+F_e u recF p k_f x =v
+  (F (recF - 1) u (\u2. \k_pred. k_pred (x - 1)) p k_f
+   \/ F (recF - 1) (-u) (\u2. \k_pred. k_pred (x - 1)) p k_f
+   \/ F_e (u - 1) recF p k_f x)
+  /\ u >= 0.
+XX recXX ttttt _x flag fn p k_xx =v
+  recXX > 0
+  /\ (flag != 1
+      \/ (∀recF. recF < 8 + 1 * ttttt \/ recF < 8 + -1 * ttttt \/ recF < 8 \/ F recF _x fn p k_xx))
+  /\ (flag = 1 \/ XX (recXX - 1) ttttt _x 1 fn p k_xx).
+*/

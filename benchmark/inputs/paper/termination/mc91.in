@@ -1,3 +1,4 @@
+/* solvable with --coe=1,20 */
 %HES
 Sentry =v ∀x_347. MC91 x_347 (\x_339. true).
 MC91 n k_mc91_22 =u

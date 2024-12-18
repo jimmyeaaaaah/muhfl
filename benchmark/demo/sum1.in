@@ -1,0 +1,22 @@
+%HES
+Main =v ∀x. Sum x (\x_. true).
+
+Sum n k =u
+  (
+    n <= 0 =>
+      k 0
+  )
+  /\ (
+    n > 0 =>
+      Sum n (\x. k (n + x))
+  ).
+
+
+/*
+/* calculate n + (n-1) + ... + 1 */
+let rec sum n =
+  if n<=0 then
+    0
+  else
+    n + sum (n - 1)
+*/

@@ -1,0 +1,55 @@
+/* vが同じ使われ方をしている */
+/* valid */
+%HES
+Sentry =v
+  ∀x. 
+      (x <= 0 \/ (∀recD. recD < 1 + 1 * x \/ recD < 1 + (-1) * x \/ recD < 1 \/ D recD (\k. k x)))
+   /\ (x >  0 \/ (∀recU. recU < 1 + 1 * x \/ recU < 1 + (-1) * x \/ recU < 1 \/ U recU (\k. k x))).
+D recD v =v recD > 0 /\ v (\x. x = 0 \/ D (recD - 1) (\k. k (x - 1))).
+U recU v =v recU > 0 /\ v (\x. x = 0 \/ U (recU - 1) (\k. k (x + 1))).
+
+%ENV
+Sentry : bool[true].
+D :  recD30:int ->
+     ((t31:int -> bool[t31 = 0 \/ t31 >= 1 /\ -1 * t31 + recD30 >= 1]) -> bool[recD30 >= 1]) ->
+     bool[recD30 >= 1].
+
+U :  recU44:int ->
+     ((t45:int -> bool[t45 + recU44 >= 1 /\ t45 <= 0]) -> bool[recU44 >= 1]) ->
+     bool[recU44 >= 1].
+
+/*
+/* 異なる使われ方をしている */
+/* unknown */
+%HES
+Sentry =v
+  ∀x. 
+      (x <= 0 \/ (∀recD. recD < 1 + 1 * x \/ recD < 1 + (-1) * x \/ recD < 1 \/ D recD (\k. k x)))
+   /\ (x >  0 \/ (∀recU. recU < 1 + 1 * x \/ recU < 1 + (-1) * x \/ recU < 1 \/ U recU (\k. k x))).
+
+D recD v =v recD > 0 /\ v (\x. x = 0 \/ v (\x. D (recD - 1) (\k. k (x - 1)))).
+U recU v =v recU > 0 /\ v (\x. x = 0 \/ v (\x. U (recU - 1) (\k. k (x + 1)))).
+
+
+/* 異なる使われ方をしている + extra args */
+/* valid */
+%HES
+Sentry =v
+  ∀x. 
+      (x <= 0 \/ (∀recD. recD < 1 + 1 * x \/ recD < 1 + (-1) * x \/ recD < 1 \/ D recD x (\k. k x)))
+   /\ (x >  0 \/ (∀recU. recU < 1 + 1 * x \/ recU < 1 + (-1) * x \/ recU < 1 \/ U recU x (\k. k x))).
+D recD _v v =v recD > 0 /\ v (\x. x = 0 \/ v (\x. D (recD - 1) (_v - 1) (\k. k (x - 1)))).
+U recU _v v =v recU > 0 /\ v (\x. x = 0 \/ v (\x. U (recU - 1) (_v + 1) (\k. k (x + 1)))).
+
+%ENV
+Sentry : bool[true].
+D :   recD36:int ->
+      _v37:int ->
+      ((t38:int -> bool[t38 + -1 * _v37 = 0]) -> bool[(_v37 >= 1 /\ recD36 + -1 * _v37 >= 1 \/ _v37 = 0) /\ recD36 >= 1]) ->
+      bool[(_v37 >= 1 /\ recD36 + -1 * _v37 >= 1 \/ _v37 = 0) /\ recD36 >= 1].
+
+U : recU54:int ->
+     _v55:int ->
+      ((t56:int -> bool[t56 + -1 * _v55 = 0 /\ t56 + recU54 >= 1 /\ t56 <= 0]) -> bool[recU54 >= 1]) ->
+       bool[recU54 >= 1].
+*/

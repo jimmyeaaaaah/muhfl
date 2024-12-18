@@ -1,0 +1,93 @@
+%HES
+Sentry =v
+  ∀x. 
+   (x < 0
+    \/ (∀y. 
+         ∀sssss. 
+          sssss < 1 * x + 1 \/ sssss < (-1) * x + 1 \/ sssss < 1 * y + 1
+          \/ sssss < (-1) * y + 1
+          \/ sssss < 1
+          \/ (∀recXX. 
+               recXX < 8 + 1 * 0 \/ recXX < 8 + (-1) * 0 \/ recXX < 8 + 1 * x
+               \/ recXX < 8 + 1 * y
+               \/ recXX < 8 + (-1) * x
+               \/ recXX < 8 + (-1) * y
+               \/ recXX < 8
+               \/ XX recXX x y sssss 0 (\u. \k_main. k_main x)
+                   (\fx. 
+                     \k_succ. 
+                      fx 0 (\x2. k_succ (\u. \k_succ2. k_succ2 (x2 + 1))))
+                   (\u. \k_main. k_main y) (\x2. x2 0 (\x3. true)))))
+   /\ (x >= 0 \/ true).
+TOCHURCH recTOCHURCH _n _x fn f fx k_toChurch =v
+  recTOCHURCH > 0
+  /\ fn 0
+      (\x. 
+        (x != 0
+         \/ (1 != 1 \/ k_toChurch fx)
+            /\ (1 = 1
+                \/ fn 0
+                    (\x2. 
+                      TOCHURCH (recTOCHURCH - 1) (_n - 1) _x (\u. \k_pred. k_pred (x2 - 1))
+                       f fx (\x3. f x3 k_toChurch))))
+        /\ (x = 0
+            \/ (0 != 1 \/ k_toChurch fx)
+               /\ (0 = 1
+                   \/ fn 0
+                       (\x2. 
+                         TOCHURCH (recTOCHURCH - 1) (_n - 1) _x
+                          (\u. \k_pred. k_pred (x2 - 1)) f fx
+                          (\x3. f x3 k_toChurch))))).
+XX recXX _n _x ttttt flag fn f fx k_xx =v
+  recXX > 0
+  /\ (flag != 1
+      \/ (∀sssss. 
+           sssss < 1 * ttttt + 1 \/ sssss < (-1) * ttttt + 1 \/ sssss < 1
+           \/ (∀recTOCHURCH. 
+                recTOCHURCH < 8 + 1 * ttttt \/ recTOCHURCH < 8 + (-1) * ttttt
+                \/ recTOCHURCH < 8
+                \/ TOCHURCH recTOCHURCH _n _x fn f fx k_xx)))
+     /\ (flag = 1
+         \/ (∀sssss. 
+              sssss < 1 * ttttt + 1 \/ sssss < (-1) * ttttt + 1 \/ sssss < 1
+              \/ XX (recXX - 1) _n _x sssss 1 fn f fx k_xx)).
+
+%ENV
+TOCHURCH : recTOCHURCH100:int ->
+            _n:int ->
+             _x:int ->
+              (t103:int ->
+                (t104:int ->
+                  bool[_n + -1 * t104 <= 0 /\ t104 + -1 * recTOCHURCH100 < -9
+                       /\ t104 + -1 * _n <= 0
+                       /\ _n >= 0]) ->
+                 bool[recTOCHURCH100 > 9 /\ _n >= 0 /\ t103 = 0]) ->
+               ((t107:int -> (t108:int -> bool[true]) -> bool[true]) ->
+                 ((t111:int -> (t112:int -> bool[true]) -> bool[true]) -> bool[true]) -> bool[true]) ->
+                (t117:int -> (t118:int -> bool[true]) -> bool[true]) ->
+                 ((t121:int -> (t122:int -> bool[true]) -> bool[true]) -> bool[true]) ->
+                  bool[recTOCHURCH100 > 9 /\ _n >= 0].
+XX : recXX286:int ->
+      _n:int ->
+       _x:int ->
+        ttttt289:int ->
+         flag290:int ->
+          (t291:int ->
+            (t292:int ->
+              bool[_n + -1 * t292 <= 0 /\ t292 >= 0 /\ t292 + -1 * ttttt289 < 0
+                   /\ (t292 + -1 * ttttt289 < -1 \/ flag290 <= 0)
+                   /\ t292 + _n * -1 <= 0]) ->
+             bool[(ttttt289 > 1 \/ flag290 <= 0) /\ _n >= 0 /\ recXX286 > 6 /\ flag290 < 2
+                  /\ (flag290 > 0 \/ recXX286 > 7)
+                  /\ ttttt289 > 0]) ->
+           ((t295:int -> (t296:int -> bool[true]) -> bool[flag290 = 0 \/ flag290 = 1]) ->
+             ((t299:int -> (t300:int -> bool[flag290 = 1 \/ flag290 = 0]) -> bool[true]) ->
+               bool[flag290 = 1 \/ flag290 = 0]) ->
+              bool[true]) ->
+            (t305:int -> (t306:int -> bool[flag290 = 1 \/ flag290 = 0]) -> bool[true]) ->
+             ((t309:int -> (t310:int -> bool[true]) -> bool[flag290 = 0 \/ flag290 = 1]) ->
+               bool[true]) ->
+              bool[(ttttt289 > 1 \/ flag290 <= 0) /\ _n >= 0 /\ recXX286 > 6 /\ flag290 < 2
+                   /\ (flag290 > 0 \/ recXX286 > 7)
+                   /\ ttttt289 > 0].
+                   

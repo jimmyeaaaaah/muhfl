@@ -430,7 +430,7 @@ let get_occuring_arith_terms phi added_vars =
 
 type will_create_bound = CreateBound | NotCreateBound
 
-let get_global_env {var_in_out; body; _} outer_mu_funcs (global_env : ptype2 T.in_out Id.t list) =
+let get_global_env {var_in_out; body; _} outer_mu_funcs global_env do_not_use_inner_ty =
   let lookup v env =
     List.find (fun (id, _) -> Id.eq id v) env |> snd in
   let env_has v env =
@@ -448,14 +448,17 @@ let get_global_env {var_in_out; body; _} outer_mu_funcs (global_env : ptype2 T.i
     let new_pvars =
       List.filter (fun pvar -> not @@ env_has pvar current_outer_pvars) arg_pvars in
     (* var_in_outと、追加するpredicateが一致しないことがある。しかし、どちらにせよその引数として渡されている値は最小不動点の中で使う可能性があるので、単にタグをTにすればよい *)
-    let pvar_e = List.find (fun v -> Id.eq v pvar) global_env in
-    if new_pvars = [] then
-      {pvar with ty=pvar_e.ty.T.inner_ty}, NotCreateBound, pvar_e.ty.T.inner_ty
-    else
+    let pvar_e, fix = List.find (fun (v, _) -> Id.eq v pvar) global_env in
+    if new_pvars = [] then begin
+      if do_not_use_inner_ty && (fix = T.Least) then
+        {pvar with ty=pvar_e.ty.T.outer_ty}, CreateBound, pvar_e.ty.T.inner_ty
+      else
+        {pvar with ty=pvar_e.ty.T.inner_ty}, NotCreateBound, pvar_e.ty.T.inner_ty
+    end else
       {pvar with ty=pvar_e.ty.outer_ty}, CreateBound, pvar_e.ty.T.inner_ty
   )
 
-let add_params c1 c2 outer_mu_funcs (rules : ptype2 thes_rule_in_out list) =
+let add_params c1 c2 outer_mu_funcs (rules : ptype2 thes_rule_in_out list) do_not_use_inner_ty =
   Hashtbl.reset generated_ids;
   let simplifier = fun x -> x in
   (* let simplifier = Simplify.simplify in *)
@@ -733,12 +736,12 @@ let add_params c1 c2 outer_mu_funcs (rules : ptype2 thes_rule_in_out list) =
     | Var x -> Var {x with ty=TInt'}
     | Op (o, ps) -> Op (o, List.map go_arith ps)
   in
-  let global_env = List.map (fun {var_in_out; _} -> var_in_out) rules in
+  let global_env = List.map (fun {var_in_out; fix; _} -> var_in_out, fix) rules in
   let rules =
     List.map
       (fun ({var_in_out; body; fix} as rule) ->
         let global_env =
-          get_global_env rule outer_mu_funcs global_env in
+          get_global_env rule outer_mu_funcs global_env do_not_use_inner_ty in
         (* print_endline "start";
         print_endline @@ Id.to_string var_in_out;
         List.iter
