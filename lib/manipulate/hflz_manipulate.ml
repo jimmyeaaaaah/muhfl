@@ -748,6 +748,7 @@ let replace_occurences
     (coe1: int)
     (coe2 : int)
     (outer_mu_funcs : (unit Type.ty Id.t * unit Type.ty Id.t list) list)
+    (counters : Type.simple_ty Type.arg Id.t list ref)
     (scoped_rec_tvars : ('a Id.t * 'b Id.t) list)
     (rec_tvars : ('a Id.t * unit Type.ty Type.arg Id.t) list)
     (rec_lex_tvars : ('a Type.arg Id.t * 'a Type.arg Id.t list) list)
@@ -798,7 +799,7 @@ let replace_occurences
           print_endline @@ "pvar: " ^ pvar.Id.name;
           raise Not_found
         in
-      let make_args env_guessed env =
+      (* let make_args env_guessed env =
         (* when lexicographic order *)
         (* 述語 -> 再帰回数の変数 を受け取り、pvarの再帰変数は-1、ほかはそのまま適用する *)
         arg_pvars
@@ -820,6 +821,39 @@ let replace_occurences
                   Env.lookup t rec_lex_tvars |> List.map (fun v -> {v with Id.ty=`Int})
                 )
           )
+      in *)
+      let make_args env_guessed env =
+        let rec_tvars = ref [] in
+        arg_pvars
+        |> List.iter
+          (fun pvar' ->
+            try let term = Env.lookup pvar' env in
+              let counters_pvar = Env.lookup term rec_lex_tvars in
+                let is_pres = ref true in
+                let pres, dec, posts =
+                  List.fold_left
+                  (fun (pres, dec, posts) (counter) ->
+                    if List.mem  counter counters_pvar then begin
+                      is_pres := false;
+                      (pres, counter::dec, posts)
+                    end else begin
+                      if !is_pres then
+                        (counter::pres, dec, posts)
+                      else
+                        (pres, dec, counter::posts)
+                    end
+                  )([], [], []) !counters in
+                rec_tvars := !rec_tvars @ [(None, pres|> List.map (fun v -> {v with Id.ty=`Int}))];
+                rec_tvars := !rec_tvars @ [(Some true, dec|> List.map (fun v -> {v with Id.ty=`Int}))];
+                rec_tvars := !rec_tvars @ [(None, posts|> List.map (fun v -> {v with Id.ty=`Int}))];
+            with
+            Not_found ->
+              rec_tvars := !rec_tvars @ [(None,
+                let t = Env.lookup pvar' env_guessed in
+                Env.lookup t rec_lex_tvars |> List.map (fun v -> {v with Id.ty=`Int})
+              )]
+          );
+        !rec_tvars
       in
       let make_args_one env_guessed env =
         (* when not lexicographic order *)
@@ -848,6 +882,7 @@ let replace_occurences
             |> List.flatten
           ) pvar.ty in
         Var {pvar with ty=ty} in
+      (* counterのdecrementをするとき *)
       if new_pvars = [] then
         if is_lexi_one then
           let rec_vars = make_args_one Env.empty scoped_rec_tvars in
@@ -865,6 +900,7 @@ let replace_occurences
         let new_tvars_lex =
           List.map (fun v -> Env.lookup v rec_lex_tvars) new_tvars
           |> List.flatten in
+        (* 一番最初の述語の呼び出し *)
         (* ∀r. r < 1 + x \/ ... \/ A r x ... *)
         let havocs =
           (Core.List.cartesian_product
@@ -1035,6 +1071,7 @@ let elim_mu_with_rec (entry, rules) coe1 coe2 lexico_pair_number id_type_map use
     |> Env.create in
   let lexico_pair_number =
     Env.create @@ List.map (fun (_, tvar) -> (tvar, lexico_pair_number)) rec_tvars in
+  let counters = ref [] in
   let rec_lex_tvars =
     List.map
       (fun (_, rec_tvar) ->
@@ -1042,8 +1079,13 @@ let elim_mu_with_rec (entry, rules) coe1 coe2 lexico_pair_number id_type_map use
           rec_tvar,
           range 1 (Env.lookup rec_tvar lexico_pair_number)
           |> List.map (fun i -> 
-            if i = 1 then rec_tvar
-            else Id.gen ~name:(rec_tvar.name ^ "_" ^ string_of_int i) (Type.TyInt)
+            let counter = 
+              if i = 1 then rec_tvar
+              else Id.gen ~name:(rec_tvar.name ^ "_" ^ string_of_int i) (Type.TyInt)
+            in 
+            if not (List.mem counter !counters) then
+              counters := !counters @ [counter];
+            counter
           )
         )
       )
@@ -1055,7 +1097,7 @@ let elim_mu_with_rec (entry, rules) coe1 coe2 lexico_pair_number id_type_map use
       let outer_pvars = Env.lookup mypvar outer_mu_funcs in
       let scoped_rec_tvars =
         Env.create (List.map (fun pvar -> (pvar, (Env.lookup pvar rec_tvars))) outer_pvars) in
-      let body = replace_occurences coe1 coe2 outer_mu_funcs scoped_rec_tvars rec_tvars rec_lex_tvars id_type_map use_all_scoped_variables id_ho_map counter_decrement new_iteration disjunction_selector body in
+      let body = replace_occurences coe1 coe2 outer_mu_funcs counters scoped_rec_tvars rec_tvars rec_lex_tvars id_type_map use_all_scoped_variables id_ho_map counter_decrement new_iteration disjunction_selector body in
       (* Log.info begin fun m -> m ~header:"body" "%a" Print.(hflz simple_ty_) body end; *)
       let formula_type_vars = Hflz_util.get_hflz_type body |> to_args |> List.rev in
       let rec_tvar_bounds' =
